@@ -12,4 +12,8 @@ class StdAttendance extends Model
     protected $guarded = [
         'id',
     ];
+
+    public function takenSubject(){
+        return $this->belongsTo(TakenSubject::class, 'taken_subject_id','id');
+    }
 }
