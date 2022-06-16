@@ -28,4 +28,8 @@ class GivenSubject extends Model
     public function semester(){
         return $this->belongsTo(Semester::class, 'semester_id','id');
     }
+
+    public function cam(){
+        return $this->belongsTo(Cam::class, 'cam_id','id');
+    }
 }
