@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('username');
             $table->boolean('isAdmin'); // adming or prof.
             $table->integer('person_id')->nullable();
+            $table->integer('semester_id')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
