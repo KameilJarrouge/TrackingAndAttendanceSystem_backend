@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('semesters', function (Blueprint $table) {
             $table->id();
+            $table->string('name_identifier');
+            $table->string('year');
+            $table->date('semester_start');
+            $table->integer('number_of_weeks');
             $table->timestamps();
         });
     }
