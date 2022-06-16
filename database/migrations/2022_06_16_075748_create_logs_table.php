@@ -15,6 +15,13 @@ return new class extends Migration
     {
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('cam_id')->constrained('cams')->cascadeOnDelete();
+            $table->integer('person_id')->nullable();
+            $table->timestamp('timestamp');
+            $table->boolean('unidentified');
+            $table->boolean('ignore');
+            $table->string('verification_img')->nullable();
+            $table->boolean('warning_flag');
             $table->timestamps();
         });
     }
