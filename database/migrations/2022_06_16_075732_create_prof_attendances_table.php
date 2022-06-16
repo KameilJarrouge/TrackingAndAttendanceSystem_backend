@@ -15,6 +15,12 @@ return new class extends Migration
     {
         Schema::create('prof_attendances', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('given_subject_id')->constrained('given_subjects')->cascadeOnDelete();
+            $table->integer('week');
+            $table->boolean('attended');
+            $table->string('verification_img');
+            $table->timestamp('timestamp');
+            $table->boolean('skipped');
             $table->timestamps();
         });
     }
