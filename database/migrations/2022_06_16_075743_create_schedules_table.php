@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('cam_id')->constrained('cams')->cascadeOnDelete();
+            $table->integer('day');
+            $table->time('start');
+            $table->time('end');
             $table->timestamps();
         });
     }
