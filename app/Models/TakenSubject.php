@@ -25,5 +25,12 @@ class TakenSubject extends Model
         return $this->hasMany(StdAttendance::class,'taken_subject_id','id');
     }
 
+    public function thSubjectGiven(){
+        return $this->belongsTo(GivenSubject::class,'given_subject_id_th','id');
+    }
+
+    public function prSubjectGiven(){
+        return $this->belongsTo(GivenSubject::class,'given_subject_id_pr','id');
+    }
 
 }
