@@ -15,6 +15,9 @@ return new class extends Migration
     {
         Schema::create('cams', function (Blueprint $table) {
             $table->id();
+            $table->string('cam_url')->unique();
+            $table->string('location');
+            $table->integer('type');
             $table->timestamps();
         });
     }
