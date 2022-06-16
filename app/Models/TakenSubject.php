@@ -33,4 +33,8 @@ class TakenSubject extends Model
         return $this->belongsTo(GivenSubject::class,'given_subject_id_pr','id');
     }
 
+    public function semester(){
+        return $this->belongsTo(Semester::class, 'semester_id','id');
+    }
+
 }
