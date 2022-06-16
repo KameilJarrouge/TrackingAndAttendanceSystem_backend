@@ -15,6 +15,13 @@ return new class extends Migration
     {
         Schema::create('taken_subjects', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
+            $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
+            $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
+            $table->foreignId('given_subject_id_th');
+            $table->foreignId('given_subject_id_pr');
+            $table->boolean('attendance_warning');
+            $table->boolean('suspended');
             $table->timestamps();
         });
     }
