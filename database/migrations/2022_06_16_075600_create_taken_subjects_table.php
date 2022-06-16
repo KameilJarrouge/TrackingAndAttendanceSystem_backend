@@ -18,10 +18,10 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
             $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
             $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
-            $table->foreignId('given_subject_id_th');
-            $table->foreignId('given_subject_id_pr');
-            $table->boolean('attendance_warning');
-            $table->boolean('suspended');
+            $table->foreignId('given_subject_id_th')->nullable();
+            $table->foreignId('given_subject_id_pr')->nullable();
+            $table->boolean('attendance_warning')->default(false);
+            $table->boolean('suspended')->default(true);
             $table->timestamps();
         });
     }

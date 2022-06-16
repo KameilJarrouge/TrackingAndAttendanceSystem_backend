@@ -18,13 +18,13 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
             $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
             $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
-            $table->foreignId('cam_id')->constrained('cams');
+            $table->foreignId('cam_id');
             $table->time('time');
             $table->integer('day');
             $table->boolean('is_theory');
-            $table->integer('attendance_pre');
-            $table->integer('attendance_post');
-            $table->integer('attendance_present');
+            $table->integer('attendance_pre')->nullable();
+            $table->integer('attendance_post')->nullable();
+            $table->integer('attendance_present')->nullable();
             $table->timestamps();
         });
     }

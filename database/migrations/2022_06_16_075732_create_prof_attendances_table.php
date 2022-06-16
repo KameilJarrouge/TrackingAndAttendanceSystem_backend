@@ -17,10 +17,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('given_subject_id')->constrained('given_subjects')->cascadeOnDelete();
             $table->integer('week');
-            $table->boolean('attended');
-            $table->string('verification_img');
-            $table->timestamp('timestamp');
-            $table->boolean('skipped');
+            $table->boolean('attended')->default(false);
+            $table->string('verification_img')->nullable();
+            $table->timestamp('timestamp')->nullable();
+            $table->boolean('skipped')->default(false);
             $table->timestamps();
         });
     }
