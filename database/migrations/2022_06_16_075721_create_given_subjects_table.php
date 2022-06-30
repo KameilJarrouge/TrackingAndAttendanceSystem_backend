@@ -21,10 +21,12 @@ return new class extends Migration
             $table->foreignId('cam_id');
             $table->time('time');
             $table->integer('day');
+            $table->string('group');
             $table->boolean('is_theory');
             $table->integer('attendance_pre')->nullable();
             $table->integer('attendance_post')->nullable();
             $table->integer('attendance_present')->nullable();
+            $table->time('attendance_end')->nullable();
             $table->timestamps();
         });
     }

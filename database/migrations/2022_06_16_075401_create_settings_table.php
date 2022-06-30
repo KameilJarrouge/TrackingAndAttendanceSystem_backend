@@ -15,13 +15,13 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->integer('warning_thresh');
-            $table->integer('suspension_thresh');
-            $table->integer('attendance_pre');
-            $table->integer('attendance_post');
-            $table->integer('attendance_present');
-            $table->boolean('should_send_sms');
-            $table->string('sms_number');
+            $table->integer('warning_thresh')->nullable();
+            $table->integer('suspension_thresh')->nullable();
+            $table->integer('attendance_pre')->nullable();
+            $table->integer('attendance_post')->nullable();
+            $table->integer('attendance_present')->nullable();
+            $table->boolean('should_send_sms')->nullable();
+            $table->string('sms_number')->nullable();
             $table->timestamps();
         });
     }
