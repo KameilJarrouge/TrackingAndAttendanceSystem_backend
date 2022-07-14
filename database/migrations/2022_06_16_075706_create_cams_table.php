@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('cam_url')->unique();
             $table->string('location');
-            $table->integer('type');
+            $table->integer('type');// 0 classroom, 1 entrance, 2 exit, 3 other
             $table->timestamps();
         });
     }

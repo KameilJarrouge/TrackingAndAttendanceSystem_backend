@@ -14,7 +14,7 @@ class SemesterController extends Controller
      */
     public function index(Request $request)
     {
-        return response(Semester::query()->paginate($request->get('perPage')));
+        return response(Semester::query()->orderByDesc('created_at')->paginate($request->get('perPage')));
     }
 
     /**
@@ -25,13 +25,16 @@ class SemesterController extends Controller
      */
     public function store(Request $request)
     {
-        Semester::query()->create([
+        $semester = Semester::query()->create([
             'name_identifier' => $request->get('name_identifier'),
             'year' => $request->get('year'),
             'semester_start' => $request->get('semester_start'),
             'number_of_weeks' => $request->get('number_of_weeks')
         ]);
-        return response(['status'=>'ok','message'=>'تم إضافة فصل جديد']);
+        $user = auth()->user();
+        $user->semester_id = $semester->id;
+        $user->save();
+        return response(['status'=>'ok','message'=>'تم إضافة فصل جديد','user' => $user]);
     }
 
     /**
@@ -79,7 +82,16 @@ class SemesterController extends Controller
     public function destroy(Semester $semester)
     {
         $semester->delete();
-        return response(['status'=>'ok','message'=>'تم إزالة الفصل']);
+//        update the semester id on the auth user
+        $user = auth()->user();
+        $sem = Semester::getLatest();
+        if($sem === null){
+            $user->semester_id = null ;
+        }else{
+            $user->semester_id = $sem->id;
+        }
+        $user->save();
+        return response(['status'=>'ok','message'=>'تم إزالة الفصل','user'=>$user]);
 
     }
 }

@@ -15,20 +15,20 @@ return new class extends Migration
     {
         Schema::create('people', function (Blueprint $table) {
             $table->id();
-            $table->string('id_number');
+            $table->string('id_number')->unique();
             $table->string('name');
             $table->boolean('on_campus');
             $table->boolean('track');
             $table->boolean('on_blacklist');
             $table->boolean('recognize');
-            $table->integer('identity');
-            $table->integer('fri');
-            $table->integer('sat');
-            $table->integer('sun');
-            $table->integer('mon');
-            $table->integer('tue');
-            $table->integer('wed');
-            $table->integer('thu');
+            $table->integer('identity'); // 0 other, 1 student, 2 professor
+            $table->integer('fri')->default(0);
+            $table->integer('sat')->default(0);
+            $table->integer('sun')->default(0);
+            $table->integer('mon')->default(0);
+            $table->integer('tue')->default(0);
+            $table->integer('wed')->default(0);
+            $table->integer('thu')->default(0);
             $table->timestamps();
         });
     }

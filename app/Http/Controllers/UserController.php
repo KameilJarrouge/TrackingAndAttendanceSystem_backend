@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Semester;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 class UserController extends Controller
 {
     public function login(Request $request)
@@ -14,19 +14,29 @@ class UserController extends Controller
             'username'=>$request->get('username'),
             'password'=>$request->get('password')
         ])){
-            $token=Auth::user()->createToken('myToken'.Auth::user()->id)->plainTextToken;
+//            $token=Auth::user()->createToken('myToken'.Auth::user()->id)->plainTextToken;
             $user = Auth::user();
-            return \response(['user'=> $user,'token'=>$token]);
+
+            $currentSemester = Semester::getLatest();
+            if($currentSemester !== null){
+                $user->semester_id = $currentSemester->id;
+            }else{
+                $user->semester_id = null;
+            }
+            $user->save();
+            return \response(['user'=> \auth()->user()]);
         }
 
         else {
-            return \response('error with the username or password', 401);
+            return \response('error with the username or password', 402);
         }
     }
 
     public function logout()
     {
-        return auth()->user()->tokens()->delete();
+//         auth()->user()->tokens()->delete();
+//        \auth()->logout();
+        Auth::logout();
     }
 
 

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('timestamp');
             $table->boolean('unidentified');
             $table->boolean('ignore');
-            $table->string('verification_img')->nullable();
+            $table->string('verification_img')->default("");
             $table->boolean('warning_flag');
             $table->timestamps();
         });

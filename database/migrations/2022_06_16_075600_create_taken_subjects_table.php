@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('given_subject_id_th')->nullable();
             $table->foreignId('given_subject_id_pr')->nullable();
             $table->boolean('attendance_warning')->default(false);
-            $table->boolean('suspended')->default(true);
+            $table->boolean('suspended')->default(false);
             $table->timestamps();
         });
     }

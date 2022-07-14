@@ -21,4 +21,8 @@ class Semester extends Model
         return $this->hasMany(TakenSubject::class,'semester_id','id');
     }
 
+    public static function getLatest(){
+        return Semester::query()->latest('id')->first('id');
+    }
+
 }
