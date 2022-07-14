@@ -4,8 +4,10 @@
 use App\Http\Controllers\CamController;
 use App\Http\Controllers\GivenSubjectController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\ProfessorController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
@@ -80,9 +82,16 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/cameras/options',[CamController::class, 'camOptions']);
     Route::post('/cameras/add',[CamController::class, 'store']);
     Route::get('/cameras/{cam}',[CamController::class, 'show']);
+    Route::post('/cameras/{cam}/add-schedule',[CamController::class, 'addSchedule']);
     Route::put('/cameras/{cam}/update',[CamController::class, 'update']);
     Route::get('/cameras/{cam}/log',[CamController::class, 'log']);
+    Route::get('/cameras/{cam}/schedule',[CamController::class, 'schedule']);
     Route::delete('/cameras/{cam}/delete',[CamController::class, 'destroy']);
+
+    // =================================================================================================== Schedule
+    Route::delete('/schedules/{schedule}/delete',[ScheduleController::class,'destroy']);
+    Route::put('/schedules/{schedule}/update',[ScheduleController::class,'update']);
+    Route::get('/schedules/{schedule}',[ScheduleController::class,'show']);
 
     // =================================================================================================== Students
     Route::get('/students/{student}',[StudentController::class,'show']);
@@ -109,7 +118,8 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/given-subjects/{givenSubject}/info',[GivenSubjectController::class,'info']);
     Route::get('/given-subjects/{givenSubject}',[GivenSubjectController::class,'show']);
 
-
+    // =================================================================================================== Given Subjects
+    Route::put('/logs/{log}/ignore',[LogController::class,'ignore']);
 
 });
 
