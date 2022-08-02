@@ -26,7 +26,9 @@ return new class extends Migration
             $table->integer('attendance_pre')->nullable();
             $table->integer('attendance_post')->nullable();
             $table->integer('attendance_present')->nullable();
-            $table->time('attendance_end')->nullable();
+            $table->time('attendance_extend')->nullable();
+            $table->time('restart_start_time')->nullable();
+            $table->integer('restart_duration')->nullable();
             $table->timestamps();
         });
     }

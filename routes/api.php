@@ -6,10 +6,12 @@ use App\Http\Controllers\GivenSubjectController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\ProfAttendanceController;
 use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\StdAttendanceController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TakenSubjectController;
@@ -37,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function (){
     // =================================================================================================== Semester
     Route::get('/semesters',[SemesterController::class,'index']);
     Route::post('/semesters/add',[SemesterController::class,'store']);
+    Route::put('/semesters/preview-current',[SemesterController::class,'previewCurrent']);
     Route::get('/semesters/{semester}',[SemesterController::class,'show']);
     Route::put('/semesters/{semester}/update',[SemesterController::class,'update']);
     Route::put('/semesters/{semester}/preview',[SemesterController::class,'preview']);
@@ -64,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function (){
 
     // =================================================================================================== Subjects
     Route::get('/subjects',[SubjectController::class,'index']);
+    Route::get('/subjects/dashboard',[SubjectController::class,'dashboard']);
     Route::post('/subjects/add',[SubjectController::class,'store']);
     Route::get('/subjects/{subject}',[SubjectController::class,'show']);
     Route::put('/subjects/{subject}/update',[SubjectController::class,'update']);
@@ -75,6 +79,8 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/subjects/{subject}/add-student',[SubjectController::class, 'addStudent']);
     Route::get('/subjects/{subject}/professors',[SubjectController::class,'professors']);
     Route::get('/subjects/{subject}/students',[SubjectController::class,'students']);
+    Route::get('/subjects/{subject}/students-attendance-detailed',[SubjectController::class,'studentsDetailed']);
+    Route::get('/subjects/{subject}/professors-attendance-detailed',[SubjectController::class,'professorsDetailed']);
 
     // =================================================================================================== Cams
     Route::get('/cameras',[CamController::class, 'index']);
@@ -96,6 +102,7 @@ Route::middleware('auth:sanctum')->group(function (){
     // =================================================================================================== Students
     Route::get('/students/{student}',[StudentController::class,'show']);
     Route::get('/students/{student}/subjects',[StudentController::class,'takenSubjects']);
+    Route::get('/students/{student}/taken-subjects',[StudentController::class,'takenSubjectsDetailed']);
     Route::post('/students/{student}/add-subject',[StudentController::class,'addSubject']);
     Route::get('/students/subjects/{subject}/options',[SubjectController::class, 'studentOptions']);
 
@@ -107,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function (){
     // =================================================================================================== Professors
     Route::get('/professors/{professor}',[ProfessorController::class,'show']);
     Route::get('/professors/{professor}/subjects',[ProfessorController::class,'givenSubjects']);
+    Route::get('/professors/{professor}/given-subjects',[ProfessorController::class,'givenSubjectsDetailed']);
     Route::post('/professors/{professor}/add-subject',[ProfessorController::class,'addSubject']);
     Route::get('/professors/subjects/options',[ProfessorController::class,'professorOptions']);
 
@@ -116,11 +124,23 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/given-subjects/{givenSubject}/update-subject',[ProfessorController::class,'updateSubject']);
     Route::delete('/given-subjects/{givenSubject}/remove-subject',[ProfessorController::class,'removeSubject']);
     Route::get('/given-subjects/{givenSubject}/info',[GivenSubjectController::class,'info']);
+    Route::get('/given-subjects/{givenSubject}/infoDashboard',[GivenSubjectController::class,'infoDashboard']);
     Route::get('/given-subjects/{givenSubject}',[GivenSubjectController::class,'show']);
+    Route::put('/given-subjects/{givenSubject}/restart',[GivenSubjectController::class,'restart']);
+    Route::put('/given-subjects/{givenSubject}/extend',[GivenSubjectController::class,'extend']);
 
-    // =================================================================================================== Given Subjects
+    // =================================================================================================== Logs
     Route::put('/logs/{log}/ignore',[LogController::class,'ignore']);
-
+    // =================================================================================================== Student Attendance
+    Route::put('/student-attendance/{stdAttendance}/update',[StdAttendanceController::class,'update']);
+    // =================================================================================================== Professor Attendance
+    Route::put('/professor-attendance/{profAttendance}/update',[ProfAttendanceController::class,'update']);
+    // =================================================================================================== Users
+    Route::get('/users',[UserController::class,'index']);
+    Route::post('/users/add',[UserController::class,'store']);
+    Route::get('/users/{user}',[UserController::class,'show']);
+    Route::put('/users/{user}/update',[UserController::class,'update']);
+    Route::delete('/users/{user}/delete',[UserController::class,'destroy']);
 });
 
 

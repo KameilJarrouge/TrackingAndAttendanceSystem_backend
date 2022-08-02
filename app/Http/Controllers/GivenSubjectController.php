@@ -39,8 +39,25 @@ class GivenSubjectController extends Controller
         //
     }
 
+
+    public function restart(Request $request, GivenSubject $givenSubject){
+        $givenSubject->update(['attendance_extend' => $request->get('extend_duration')]);
+
+        return response(['status' => 'ok','message' => 'تم تمديد الحضور بنجاح']);
+    }
+
+    public function extend(Request $request, GivenSubject $givenSubject){
+        $givenSubject->update(['restart_start_time' => $request->get('extend_duration') , 'restart_duration' => $request->get('restart_duration')]);
+
+        return response(['status' => 'ok','message' => 'تم إعادة تسجيل الحضور بنجاح']);
+    }
+
     public function info(GivenSubject $givenSubject){
         return response($givenSubject->loadMissing(['professor','subject','cam']));
+    }
+    public function infoDashboard(GivenSubject $givenSubject){
+        $givenSubject->activeWeekProfAttendanceAttended();
+        return response($givenSubject->loadMissing(['professor','subject','cam'])->loadCount(['activeWeekAttendance','activeWeekAttendanceAttended']));
     }
 
     /**

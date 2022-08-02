@@ -33,6 +33,10 @@ class PersonController extends Controller
         if($request->get('blacklist') !== "-1"){
             $constraints['on_blacklist'] = $request->get('blacklist');
         }
+
+        if($request->get('recognize') !== "-1"){
+            $constraints['recognize'] = $request->get('recognize');
+        }
         if ($constraints === []){
             return response(Person::query()->where(function ($query) use($identifier,$request){
                 $query->where('name', 'like','%' . $identifier . '%')
@@ -62,7 +66,7 @@ class PersonController extends Controller
             'name'=> $request->get('name'),
             'track' => $request->get('track'),
             'on_blacklist' => $request->get('on_blacklist'),
-            'recognize' => 1,
+            'recognize' => $request->get('recognize'),
             'on_campus' => 0,
             'identity' => $request->get('identity'),
         ]);
@@ -155,8 +159,8 @@ class PersonController extends Controller
             'name'=> $request->get('name'),
             'track' => $request->get('track'),
             'on_blacklist' => $request->get('on_blacklist'),
-            'recognize' => 1,
-            'on_campus' => 0,
+            'recognize' => $request->get('recognize'),
+            'on_campus' => $person->on_campus,
             'identity' => $request->get('identity'),
         ]);
         return response(['status' => 'ok', 'message' => 'تم تعديل الشخص']);

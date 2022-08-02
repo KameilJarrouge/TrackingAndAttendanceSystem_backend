@@ -13,6 +13,7 @@ class Subject extends Model
         'id'
     ];
 
+
     public function students(){
         return $this->belongsToMany(Student::class,'taken_subjects','subject_id','person_id');
     }

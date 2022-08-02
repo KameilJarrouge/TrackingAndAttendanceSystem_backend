@@ -24,5 +24,8 @@ class Student extends Person
         return $this->belongsToMany(Subject::class, 'taken_subjects', 'person_id','subject_id');
     }
 
+    public function takenSubjects(){
+        return $this->hasMany(TakenSubject::class, 'person_id','id');
+    }
 
 }

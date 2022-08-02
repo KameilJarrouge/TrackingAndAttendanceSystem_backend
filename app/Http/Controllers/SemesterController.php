@@ -34,6 +34,7 @@ class SemesterController extends Controller
         $user = auth()->user();
         $user->semester_id = $semester->id;
         $user->save();
+        $user->semester = $semester;
         return response(['status'=>'ok','message'=>'تم إضافة فصل جديد','user' => $user]);
     }
 
@@ -61,7 +62,7 @@ class SemesterController extends Controller
             'name_identifier' => $request->get('name_identifier'),
             'year' => $request->get('year'),
             'semester_start' => $request->get('semester_start'),
-            'number_of_weeks' => $request->get('number_of_weeks')
+//            'number_of_weeks' => $request->get('number_of_weeks')
         ]);
         return response(['status'=>'ok','message'=>'تم تعديل الفصل']);
     }
@@ -69,7 +70,21 @@ class SemesterController extends Controller
     public function preview(Request $request, Semester $semester){
         auth()->user()->semester_id = $semester->id;
         auth()->user()->save();
-        return response(['status'=>'ok','message'=>'معاينة الفصل:' . '  ' . $semester->name_identifier . '  ' . $semester->year, 'user' => auth()->user()]);
+        $user = auth()->user();
+
+        $user->semester = $semester;
+        return response(['status'=>'ok','message'=>'معاينة الفصل:' . '  ' . $semester->name_identifier . '  ' . $semester->year, 'user' => $user]);
+
+    }
+
+    public function previewCurrent(Request $request){
+        $semester = Semester::getLatest();
+        auth()->user()->semester_id = $semester->id;
+        auth()->user()->save();
+        $user = auth()->user();
+
+        $user->semester = $semester;
+        return response(['status'=>'ok','message'=>'معاينة الفصل:' . '  ' . $semester->name_identifier . '  ' . $semester->year, 'user' => $user]);
 
     }
 
@@ -81,16 +96,23 @@ class SemesterController extends Controller
      */
     public function destroy(Semester $semester)
     {
+        $id = $semester->id;
         $semester->delete();
 //        update the semester id on the auth user
         $user = auth()->user();
-        $sem = Semester::getLatest();
-        if($sem === null){
-            $user->semester_id = null ;
-        }else{
-            $user->semester_id = $sem->id;
+        if($user->semester_id === $id) {
+            $sem = Semester::getLatest();
+
+            if ($sem === null) {
+                $user->semester_id = null;
+            } else {
+                $user->semester_id = $sem->id;
+            }
+            $user->save();
+            if ($sem !== null) {
+                $user->semester = $sem;
+            }
         }
-        $user->save();
         return response(['status'=>'ok','message'=>'تم إزالة الفصل','user'=>$user]);
 
     }

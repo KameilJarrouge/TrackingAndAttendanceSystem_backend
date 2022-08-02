@@ -22,7 +22,7 @@ class Semester extends Model
     }
 
     public static function getLatest(){
-        return Semester::query()->latest('id')->first('id');
+        return Semester::query()->latest('id')->first();
     }
 
 }

@@ -24,7 +24,10 @@ class UserController extends Controller
                 $user->semester_id = null;
             }
             $user->save();
-            return \response(['user'=> \auth()->user()]);
+            if($currentSemester !== null){
+                $user->semester = $currentSemester;
+            }
+            return \response(['user'=> $user]);
         }
 
         else {
@@ -46,9 +49,18 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $identifier = "";
+        if ($request->get('username') !== null) {
+            $identifier = $request->get('username');
+        }
+        $query = User::query()->where('username', 'like', '%' . $identifier . '%');
+        if($request->get('isAdmin') !== "-1"){
+            $query = $query->where('isAdmin', $request->get('isAdmin'));
+        }
+        $query->where('id' , '<>', \auth()->user()->id);
+        return response($query->paginate($request->get('perPage')));
     }
 
     /**
@@ -59,17 +71,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'username' => 'unique:users,username',
-        ]);
+//        $request->validate([
+//            'username' => 'unique:users,username',
+//        ]);
+        $head=0;
+        if (User::query()->where('head',1)->count() === 0){
+            $head = 1;
+        }
 
         $user = User::query()->create([
             'username' => $request->get('username'),
             'password' => bcrypt($request->get('password')),
-            'is_admin' => $request->get('is_admin')
+            'isAdmin' => $request->get('isAdmin'),
+            'head' => $head,
         ]);
 
-        return response($user);
+
+        return response(['status' => 'ok', 'message' => 'تم إضافة المستخدم بنجاح']);
     }
 
     /**
@@ -80,7 +98,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return response($user);
     }
 
     /**
@@ -92,7 +110,14 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+
+        if ($request->get('password') !== "-1"){
+
+            $user->password = bcrypt($request->get('password'));
+        }
+        $user->username = $request->get('username');
+        $user->save();
+        return response(['status' => 'ok' , 'message' => 'تم تعديل المستخدم بنجاح', 'user' => $user]);
     }
 
     /**
@@ -103,6 +128,11 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        if ($user->head){
+            return response(['status' => 'not ok', 'message' => 'لا يمكن حذف المستخدم الرئيسي']);
+        }else{
+            $user->delete();
+            return response(['status' => 'ok' , 'message' => 'تم إزالة المستخدم بنجاح']);
+        }
     }
 }

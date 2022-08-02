@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
         Setting::query()->create();
-        $kamil =  User::query()->create(['username' => 'kamil', 'password' => bcrypt('kamil'), 'isAdmin' => 1]);
-        $adminUser = User::query()->create(['username' => 'admin', 'password' => bcrypt('admin'), 'isAdmin' => 1]);
-        $professorUser = User::query()->create(['username' => 'professor', 'password' => bcrypt('professor'), 'isAdmin' => 1]);
+        $kamil =  User::query()->create(['username' => 'kamil', 'password' => bcrypt('kamil'), 'isAdmin' => 1, 'head'=> 1]);
+        $adminUser = User::query()->create(['username' => 'admin', 'password' => bcrypt('admin'), 'isAdmin' => 1 , 'head' => 0]);
+        $professorUser = User::query()->create(['username' => 'professor', 'password' => bcrypt('professor'), 'isAdmin' => 1, 'head' => 0]);
 
 
 

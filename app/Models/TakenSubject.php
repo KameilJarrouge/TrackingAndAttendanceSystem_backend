@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,8 +22,28 @@ class TakenSubject extends Model
         return $this->belongsTo(Subject::class, 'subject_id', 'id');
     }
 
+    public function activeWeekTh(){
+        $currentSemester = Semester::getLatest();
+        $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now());
+        return $this->attendancesTh()->where('week',$weekNumber);
+    }
+
+    public function activeWeekPr(){
+        $currentSemester = Semester::getLatest();
+        $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now());
+        return $this->attendancesPr()->where('week',$weekNumber);
+    }
+
+
     public function attendances(){
         return $this->hasMany(StdAttendance::class,'taken_subject_id','id');
+    }
+
+    public function attendancesTh(){
+        return $this->hasMany(StdAttendance::class,'taken_subject_id','id')->where('theory',1);
+    }
+    public function attendancesPr(){
+        return $this->hasMany(StdAttendance::class,'taken_subject_id','id')->where('theory',0);
     }
 
     public function thSubjectGiven(){

@@ -20,7 +20,7 @@ class Person extends Model
             case 0: return "إداري";
             case 1: return "طالب";
             case 2: return "مدرس";
-            default: return "idk";
+            default: return "--";
         }
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cam;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CamController extends Controller
 {
@@ -19,7 +20,14 @@ class CamController extends Controller
         if ($request->get('identifier') !== null) {
             $identifier = $request->get('identifier');
         }
-        if ($request->get('type') !== "-1") {
+        if ($request->get('type') === "4") {
+            return response(Cam::query()->where('location', 'like', '%' . $identifier . '%')
+                ->where(function ($query) {
+                    $query->where('type', 1)->orWhere('type', 2);
+                })
+                ->paginate($request->get('perPage'))
+            );
+        } else if ($request->get('type') !== "-1") {
             return response(Cam::query()->where('location', 'like', '%' . $identifier . '%')
                 ->where('type', $request->get('type'))
                 ->paginate($request->get('perPage')));
@@ -96,13 +104,48 @@ class CamController extends Controller
 
     public function schedule(Request $request, Cam $cam)
     {
-        return response($cam->schedule()->paginate($request->get('perPage')));
+        return response($cam->schedule()->orderBy('day')->orderBy('start')->paginate($request->get('perPage')));
     }
+
+    private function addScheduleAllDays(Request $request, Cam $cam)
+    {
+        DB::beginTransaction();
+        for ($i = 0; $i < 7; $i++) {
+            $count = $cam->schedule()->where('day', '=',$i)
+                ->where(function ($query1) use ($request) {
+                    $query1->where(function ($query) use ($request) {
+                        $query->where('start', '<=', $request->get('start'))
+                            ->where('end', '>=', $request->get('start'));
+                    })->orWhere(function (Builder $query) use ($request) {
+                        $query->where('start', '<=', $request->get('end'))
+                            ->where('end', '>=', $request->get('end'));
+                    });
+                })
+                ->count();
+            if ($count !== 0) {
+                DB::rollBack();
+                return response(['status' => 'not ok', 'message' => 'يرجى الانتباه! تواريخ متداخلة']);
+            }
+            $cam->schedule()->create([
+                'day' => $i,
+                'start' => $request->get('start'),
+                'end' => $request->get('end'),
+            ]);
+        }
+        DB::commit();
+        return response(['status' => 'ok', 'message' => 'تم إضافة توقبت عمل']);
+    }
+
 
     public function addSchedule(Request $request, Cam $cam)
     {
+        if ($request->get('day') === "-1") {
+
+            return $this->addScheduleAllDays($request, $cam);
+        }
+
         $count = $cam->schedule()->where('day', '=', $request->get('day'))
-            ->where(function ($query1) use($request){
+            ->where(function ($query1) use ($request) {
                 $query1->where(function ($query) use ($request) {
                     $query->where('start', '<=', $request->get('start'))
                         ->where('end', '>=', $request->get('start'));
