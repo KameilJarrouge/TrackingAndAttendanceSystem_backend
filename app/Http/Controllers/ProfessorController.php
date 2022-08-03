@@ -7,6 +7,7 @@ use App\Models\ProfAttendance;
 use App\Models\Professor;
 use App\Models\Semester;
 use App\Models\Subject;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ProfessorController extends Controller
@@ -49,19 +50,43 @@ class ProfessorController extends Controller
     }
 
 
+    public function dashboardSubjects(Request $request, Professor $professor)
+    {
+        $all = $professor->givenSubjects()->where('day', '=', now()->dayOfWeek)->with(['professor', 'subject'])->get();
+        $split = $all->mapToGroups(function ($givenSubject) {
+            $startTime = Carbon::parse($givenSubject->time)->subtract('minutes', $givenSubject->attendance_pre);
+            $endTime = Carbon::parse($givenSubject->time)->addMinutes($givenSubject->attendance_post + $givenSubject->attendance_present + ($givenSubject->attendance_extend * 2));
+            if (Carbon::now()->isBefore($startTime)) { // future
+                return ['future' => $givenSubject];
+            }
+            if (Carbon::now()->isAfter($endTime)) { // previous
+                if ($givenSubject->restart_start_time !== null) {
+                    if (Carbon::now()->isAfter(Carbon::parse($givenSubject->restart_start_time)->addMinutes($givenSubject->restart_duration))) { // after restart as well
+                        return ['previous' => $givenSubject];
+                    }
+                } else {
+                    return ['previous' => $givenSubject];
+                }
+            }
+            // current
+            return ['current' => $givenSubject];
+        });
+        return response($split);
+    }
+
+
     public function givenSubjects(Request $request, Professor $professor)
     {
-//        return response($professor->subjects()->withPivot([
-//            'id', 'cam_id', 'semester_id',
-//            'time', 'day', 'group', 'is_theory',
-//            'attendance_pre', 'attendance_post', 'attendance_present'])
-//            ->wherePivot('semester_id', '=', auth()->user()->semester_id)
-//            ->with('givenSubjects', function ($query) use ($professor) {
-//                $query->where('person_id', $professor->id)->with('cam');
-//            })
-//            ->paginate($request->get('perPage')));
-        return response($professor->givenSubjects()->where('semester_id', '=',auth()->user()->semester_id)->with(['cam','subject'])->paginate($request->get('perPage')));
-
+        //        return response($professor->subjects()->withPivot([
+        //            'id', 'cam_id', 'semester_id',
+        //            'time', 'day', 'group', 'is_theory',
+        //            'attendance_pre', 'attendance_post', 'attendance_present'])
+        //            ->wherePivot('semester_id', '=', auth()->user()->semester_id)
+        //            ->with('givenSubjects', function ($query) use ($professor) {
+        //                $query->where('person_id', $professor->id)->with('cam');
+        //            })
+        //            ->paginate($request->get('perPage')));
+        return response($professor->givenSubjects()->where('semester_id', '=', auth()->user()->semester_id)->with(['cam', 'subject'])->paginate($request->get('perPage')));
     }
 
     public function givenSubjectsDetailed(Request $request, Professor $professor)
@@ -97,7 +122,8 @@ class ProfessorController extends Controller
             'attendance_pre' => $request->get('attendance_pre'),
             'attendance_post' => $request->get('attendance_post'),
             'attendance_present' => $request->get('attendance_present'),
-            'semester_id' => $semester->id);
+            'semester_id' => $semester->id
+        );
         if ($request->get('cam_id') !== null) {
             // unique day and time per camera
             $count = GivenSubject::query()->where('time', $request->get('time'))
@@ -111,20 +137,17 @@ class ProfessorController extends Controller
         }
         if ($request->get('group') !== null) {
             $attr['group'] = $request->get('group');
-
         }
         $attr['subject_id'] = $request->get('subject_id');
         $attr['person_id'] = $professor->id;
-//        $professor->subjects()->attach($request->get('subject_id'), $attr);
+        //        $professor->subjects()->attach($request->get('subject_id'), $attr);
         $gs = new GivenSubject($attr);
         $gs->save();
         // create the attendance list
-//        $gs = GivenSubject::query()->where('person_id',$professor->id)->where('subject_id',$request->get('subject_id'))->first();
+        //        $gs = GivenSubject::query()->where('person_id',$professor->id)->where('subject_id',$request->get('subject_id'))->first();
         $att = array();
-        for ($i = 1 ; $i <= $semester->number_of_weeks; $i++){
-            array_push($att,['given_subject_id' => $gs->id,'week' => $i]);
-
-
+        for ($i = 1; $i <= $semester->number_of_weeks; $i++) {
+            array_push($att, ['given_subject_id' => $gs->id, 'week' => $i]);
         }
         ProfAttendance::query()->insert($att);
         return response(['status' => 'ok', 'message' => 'تم إضافة المقرر بنجاح']);
@@ -164,23 +187,20 @@ class ProfessorController extends Controller
                 return response(['status' => 'not ok', 'message' => 'يتواجد مقرر بنفس الوقت واليوم والموقع']);
             }
             $attr['cam_id'] = $request->get('cam_id');
-        }else{
+        } else {
             $attr['cam_id'] = null;
         }
         if ($request->get('group') !== null) {
             $attr['group'] = $request->get('group');
-
         }
         $givenSubject->update($attr);
         return response(['status' => 'ok', 'message' => 'تم تعديل المقرر بنجاح']);
-
     }
 
     public function removeSubject(Request $request, GivenSubject $givenSubject)
     {
         $givenSubject->delete();
         return response(['status' => 'ok', 'message' => 'تم إزالة المقرر بنجاح']);
-
     }
 
 
