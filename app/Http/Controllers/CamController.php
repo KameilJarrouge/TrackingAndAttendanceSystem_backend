@@ -21,11 +21,12 @@ class CamController extends Controller
             $identifier = $request->get('identifier');
         }
         if ($request->get('type') === "4") {
-            return response(Cam::query()->where('location', 'like', '%' . $identifier . '%')
-                ->where(function ($query) {
-                    $query->where('type', 1)->orWhere('type', 2);
-                })
-                ->paginate($request->get('perPage'))
+            return response(
+                Cam::query()->where('location', 'like', '%' . $identifier . '%')
+                    ->where(function ($query) {
+                        $query->where('type', 1)->orWhere('type', 2);
+                    })
+                    ->paginate($request->get('perPage'))
             );
         } else if ($request->get('type') !== "-1") {
             return response(Cam::query()->where('location', 'like', '%' . $identifier . '%')
@@ -62,7 +63,7 @@ class CamController extends Controller
         }
 
         if ($request->get('identifier') !== null) {
-//            return response('Fukckkjl');
+            //            return response('Fukckkjl');
             $logQuery = $logQuery->with('person')
                 ->whereHas('person', function ($query) use ($request) {
                     $query->where('name', 'like', '%' . $request->get('identifier') . '%')
@@ -99,7 +100,6 @@ class CamController extends Controller
             'type' => $request->get('type')
         ]);
         return response(['status' => 'ok', 'message' => 'تم إضافة الكاميرا بنجاح']);
-
     }
 
     public function schedule(Request $request, Cam $cam)
@@ -111,7 +111,7 @@ class CamController extends Controller
     {
         DB::beginTransaction();
         for ($i = 0; $i < 7; $i++) {
-            $count = $cam->schedule()->where('day', '=',$i)
+            $count = $cam->schedule()->where('day', '=', $i)
                 ->where(function ($query1) use ($request) {
                     $query1->where(function ($query) use ($request) {
                         $query->where('start', '<=', $request->get('start'))
@@ -164,7 +164,6 @@ class CamController extends Controller
             'end' => $request->get('end'),
         ]);
         return response(['status' => 'ok', 'message' => 'تم إضافة توقبت عمل']);
-
     }
 
     /**
@@ -205,6 +204,16 @@ class CamController extends Controller
     {
         $cam->delete();
         return response(['status' => 'ok', 'message' => 'تم تعديل الكاميرا بنجاح']);
+    }
 
+
+    public function pythonCams()
+    {
+        return response(Cam::with(['schedule' => function ($query) {
+            $query->where('day', now()->dayOfWeek)->select(['id', 'cam_id', 'start', 'end']);
+        }])
+            ->whereHas('schedule', function ($query) {
+                $query->where('day', now()->dayOfWeek);
+            })->get(['id', 'cam_url']));
     }
 }

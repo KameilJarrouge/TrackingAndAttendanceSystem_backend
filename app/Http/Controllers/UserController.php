@@ -6,39 +6,38 @@ use App\Models\Semester;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 class UserController extends Controller
 {
     public function login(Request $request)
     {
         if (Auth::attempt([
-            'username'=>$request->get('username'),
-            'password'=>$request->get('password')
-        ])){
-//            $token=Auth::user()->createToken('myToken'.Auth::user()->id)->plainTextToken;
+            'username' => $request->get('username'),
+            'password' => $request->get('password')
+        ])) {
+            $token = Auth::user()->createToken('myToken' . Auth::user()->id)->plainTextToken;
             $user = Auth::user();
 
             $currentSemester = Semester::getLatest();
-            if($currentSemester !== null){
+            if ($currentSemester !== null) {
                 $user->semester_id = $currentSemester->id;
-            }else{
+            } else {
                 $user->semester_id = null;
             }
             $user->save();
-            if($currentSemester !== null){
+            if ($currentSemester !== null) {
                 $user->semester = $currentSemester;
             }
-            return \response(['user'=> $user]);
-        }
-
-        else {
+            return \response(['user' => $user, 'token' => $token]);
+        } else {
             return \response('error with the username or password', 402);
         }
     }
 
     public function logout()
     {
-//         auth()->user()->tokens()->delete();
-//        \auth()->logout();
+        auth()->user()->tokens()->delete();
+        //        \auth()->logout();
         Auth::logout();
     }
 
@@ -56,10 +55,10 @@ class UserController extends Controller
             $identifier = $request->get('username');
         }
         $query = User::query()->where('username', 'like', '%' . $identifier . '%');
-        if($request->get('isAdmin') !== "-1"){
+        if ($request->get('isAdmin') !== "-1") {
             $query = $query->where('isAdmin', $request->get('isAdmin'));
         }
-        $query->where('id' , '<>', \auth()->user()->id);
+        $query = $query->where('id', '<>', \auth()->user()->id)->where('python', '<>', 1);
         return response($query->paginate($request->get('perPage')));
     }
 
@@ -71,11 +70,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-//        $request->validate([
-//            'username' => 'unique:users,username',
-//        ]);
-        $head=0;
-        if (User::query()->where('head',1)->count() === 0){
+        //        $request->validate([
+        //            'username' => 'unique:users,username',
+        //        ]);
+        $head = 0;
+        if (User::query()->where('head', 1)->count() === 0) {
             $head = 1;
         }
 
@@ -111,13 +110,13 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
 
-        if ($request->get('password') !== "-1"){
+        if ($request->get('password') !== "-1") {
 
             $user->password = bcrypt($request->get('password'));
         }
         $user->username = $request->get('username');
         $user->save();
-        return response(['status' => 'ok' , 'message' => 'تم تعديل المستخدم بنجاح', 'user' => $user]);
+        return response(['status' => 'ok', 'message' => 'تم تعديل المستخدم بنجاح', 'user' => $user]);
     }
 
     /**
@@ -128,11 +127,11 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        if ($user->head){
+        if ($user->head || $user->python) {
             return response(['status' => 'not ok', 'message' => 'لا يمكن حذف المستخدم الرئيسي']);
-        }else{
+        } else {
             $user->delete();
-            return response(['status' => 'ok' , 'message' => 'تم إزالة المستخدم بنجاح']);
+            return response(['status' => 'ok', 'message' => 'تم إزالة المستخدم بنجاح']);
         }
     }
 }

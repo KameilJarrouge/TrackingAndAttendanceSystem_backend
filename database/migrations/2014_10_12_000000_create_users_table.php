@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('username')->unique();
             $table->boolean('isAdmin'); // admin or professor
+            $table->boolean('python')->default(0); // admin or professor
             $table->boolean('head'); // head or normal admin
             $table->integer('person_id')->nullable();
             $table->integer('semester_id')->nullable();

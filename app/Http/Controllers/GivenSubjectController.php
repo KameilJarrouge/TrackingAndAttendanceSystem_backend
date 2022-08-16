@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GivenSubject;
+use App\Models\Semester;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,23 @@ class GivenSubjectController extends Controller
     public function index()
     {
         //
+    }
+
+
+    public function pythonGivenSubjects()
+    {
+        $semester = Semester::getLatest();
+        if (!$semester) return response(["message" => "no semester"]);
+        $gs = GivenSubject::query()
+            ->where('day', now()->dayOfWeek)
+            ->where('semester_id', $semester->id)
+            ->whereHas('cam')
+            ->with('cam')->get();
+
+        foreach ($gs as $givenSubject) {
+            $givenSubject->std_attendances = $givenSubject->activeWeekAttendance()->with(['takenSubject', 'takenSubject.student', 'takenSubject.student.images'])->get();
+        }
+        return response($gs);
     }
 
     /**
@@ -73,6 +91,30 @@ class GivenSubjectController extends Controller
             $relation = "attendancesPr";
         }
         return response($givenSubject->takenSubjects()->where('semester_id', '=', auth()->user()->semester_id)->with([$relation, 'student'])->paginate($request->get('perPage')));
+        // return response(Student::query()
+        //     ->whereHas('takenSubjects', function ($query) use ($subject) {
+        //         $query->where('subject_id', $subject->id)->where('semester_id', '=', auth()->user()->semester_id);
+        //     })
+        //     ->with('takenSubjects', function ($query) use ($subject) {
+        //         $query->where('subject_id', $subject->id)->with(['attendancesTh', 'attendancesPr']);
+        //     })->paginate($request->get('perPage')));
+    }
+    public function studentsDetailedTh(Request $request, GivenSubject $givenSubject)
+    {
+
+        return response($givenSubject->takenSubjectsTh()->where('semester_id', '=', auth()->user()->semester_id)->with(["attendancesTh", 'student'])->paginate($request->get('perPage')));
+        // return response(Student::query()
+        //     ->whereHas('takenSubjects', function ($query) use ($subject) {
+        //         $query->where('subject_id', $subject->id)->where('semester_id', '=', auth()->user()->semester_id);
+        //     })
+        //     ->with('takenSubjects', function ($query) use ($subject) {
+        //         $query->where('subject_id', $subject->id)->with(['attendancesTh', 'attendancesPr']);
+        //     })->paginate($request->get('perPage')));
+    }
+    public function studentsDetailedPr(Request $request, GivenSubject $givenSubject)
+    {
+
+        return response($givenSubject->takenSubjectsPr()->where('semester_id', '=', auth()->user()->semester_id)->with(["attendancesPr", 'student'])->paginate($request->get('perPage')));
         // return response(Student::query()
         //     ->whereHas('takenSubjects', function ($query) use ($subject) {
         //         $query->where('subject_id', $subject->id)->where('semester_id', '=', auth()->user()->semester_id);

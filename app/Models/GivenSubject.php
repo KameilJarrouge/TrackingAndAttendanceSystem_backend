@@ -90,10 +90,21 @@ class GivenSubject extends Model
     public function takenSubjects()
     {
         $foreignId = "given_subject_id_th";
-        if (!$this->is_thoery === 1) {
+        if ($this->is_thoery !== 1) {
             $foreignId = "given_subject_id_pr";
         }
+        // return $foreignId;
         return $this->hasMany(TakenSubject::class, $foreignId, 'id');
+    }
+    public function takenSubjectsPr()
+    {
+
+        return $this->hasMany(TakenSubject::class, "given_subject_id_pr", 'id');
+    }
+    public function takenSubjectsTh()
+    {
+
+        return $this->hasMany(TakenSubject::class, "given_subject_id_th", 'id');
     }
 
     public function activeWeekAttendance()

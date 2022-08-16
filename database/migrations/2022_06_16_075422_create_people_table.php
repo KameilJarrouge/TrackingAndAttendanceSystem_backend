@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('track');
             $table->boolean('on_blacklist');
             $table->boolean('recognize');
-            $table->integer('identity'); // 0 other, 1 student, 2 professor
+            $table->integer('identity'); // 0 other, 1 student, 2 professor, 3 else
             $table->integer('fri')->default(0);
             $table->integer('sat')->default(0);
             $table->integer('sun')->default(0);

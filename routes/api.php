@@ -32,9 +32,13 @@ use Illuminate\Support\Facades\Route;
 
 // =================================================================================================== Auth
 Route::post('/login', [UserController::class, 'login']);
+Route::get('/python-data-gs', [GivenSubjectController::class, 'pythonGivenSubjects']);
+Route::get('/python-data-cams', [CamController::class, 'pythonCams']);
+Route::get('/python-data-people', [PersonController::class, 'pythonPeople']);
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:web');
+    Route::get('/settings', [SettingController::class, 'show']);
 
     // =================================================================================================== Semester
     Route::get('/semesters', [SemesterController::class, 'index']);
@@ -46,7 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/semesters/{semester}/delete', [SemesterController::class, 'destroy']);
 
     // =================================================================================================== Settings
-    Route::get('/settings', [SettingController::class, 'show']);
     Route::put('/settings/update-attendance', [SettingController::class, 'updateAttendance']);
     Route::put('/settings/update-threshold', [SettingController::class, 'updateThreshold']);
     Route::put('/settings/update-sms', [SettingController::class, 'updateSms']);
@@ -124,6 +127,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/given-subjects/{subject}/practical', [SubjectController::class, 'givenSubjectOptionsPr']);
     Route::put('/given-subjects/{givenSubject}/update-subject', [ProfessorController::class, 'updateSubject']);
     Route::get('/given-subjects/{givenSubject}/students-attendance-detailed', [GivenSubjectController::class, 'studentsDetailed']);
+    Route::get('/given-subjects/{givenSubject}/students-attendance-detailed-theory', [GivenSubjectController::class, 'studentsDetailedTh']);
+    Route::get('/given-subjects/{givenSubject}/students-attendance-detailed-practical', [GivenSubjectController::class, 'studentsDetailedPr']);
 
     Route::delete('/given-subjects/{givenSubject}/remove-subject', [ProfessorController::class, 'removeSubject']);
     Route::get('/given-subjects/{givenSubject}/info', [GivenSubjectController::class, 'info']);
