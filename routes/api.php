@@ -32,10 +32,11 @@ use Illuminate\Support\Facades\Route;
 
 // =================================================================================================== Auth
 Route::post('/login', [UserController::class, 'login']);
-Route::get('/python-data-gs', [GivenSubjectController::class, 'pythonGivenSubjects']);
-Route::get('/python-data-cams', [CamController::class, 'pythonCams']);
-Route::get('/python-data-people', [PersonController::class, 'pythonPeople']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/python-data-gs', [GivenSubjectController::class, 'pythonGivenSubjects']);
+    Route::get('/python-shutdown', [UserController::class, 'shutdownPython']);
+    Route::get('/python-data-cams', [CamController::class, 'pythonCams']);
+    Route::get('/python-data-people', [PersonController::class, 'pythonPeople']);
 
     Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:web');
     Route::get('/settings', [SettingController::class, 'show']);
@@ -113,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/taken-subjects/{takenSubject}/update-subject', [StudentController::class, 'updateSubject']);
     Route::delete('/taken-subjects/{takenSubject}/remove-subject', [StudentController::class, 'removeSubject']);
     Route::get('/taken-subjects/{takenSubject}/info', [TakenSubjectController::class, 'info']);
+    Route::put('/taken-subjects/calculate-absence', [StudentController::class, 'calculateAbsence']);
 
     // =================================================================================================== Professors
     Route::get('/professors/{professor}', [ProfessorController::class, 'show']);
@@ -136,6 +138,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/given-subjects/{givenSubject}', [GivenSubjectController::class, 'show']);
     Route::put('/given-subjects/{givenSubject}/restart', [GivenSubjectController::class, 'restart']);
     Route::put('/given-subjects/{givenSubject}/extend', [GivenSubjectController::class, 'extend']);
+    Route::put('/given-subjects/{givenSubject}/reset-extension', [GivenSubjectController::class, 'resetExtension']);
+
+    Route::post('/given-subjects/{givenSubject}/attendance-python', [GivenSubjectController::class, 'attendancePython']);
+    Route::put('/given-subjects/{givenSubject}/visit-this-week', [GivenSubjectController::class, 'visitWeek']);
+    Route::put('/given-subjects/{givenSubject}/skip-this-week', [GivenSubjectController::class, 'skipWeek']);
+    Route::put('/given-subjects/{givenSubject}/skip-this-students-week', [GivenSubjectController::class, 'skipWeek']);
+
+
 
 
     // =================================================================================================== Logs

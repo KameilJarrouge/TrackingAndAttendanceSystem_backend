@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Semester;
+use App\Models\Setting;
 use App\Models\StdAttendance;
 use App\Models\Student;
 use App\Models\Subject;
@@ -39,6 +40,28 @@ class StudentController extends Controller
             })->paginate($request->get('perPage')));
     }
 
+    public function calculateAbsence(Request $request)
+    {
+        $setttings = Setting::first();
+        $ts = TakenSubject::query()
+            ->select('id')
+            ->whereIn('id', $request->get('takenSubjectIds'))
+            ->withCount('absentAttendance')
+            ->groupBy(['id'])
+            ->get();
+        $warningGroup = array();
+        $suspensionGroup = array();
+        foreach ($ts as $takenSubject) {
+            if ($takenSubject['absent_attendance_count'] >= $setttings->suspension_thresh) {
+                array_push($suspensionGroup, $takenSubject->id);
+            } elseif ($takenSubject['absent_attendance_count'] >= $setttings->warning_thresh) {
+                array_push($warningGroup, $takenSubject->id);
+            }
+        }
+        TakenSubject::whereIn('id', $warningGroup)->update(['attendance_warning' => 1]);
+        TakenSubject::whereIn('id', $suspensionGroup)->update(['suspended' => 1]);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -68,17 +91,16 @@ class StudentController extends Controller
         $student->subjects()->attach($request->get('subject_id'), $attributes);
 
         // create the attendance list
-        $ts = TakenSubject::query()->where('person_id',$student->id)->where('subject_id',$request->get('subject_id'))->first();
+        $ts = TakenSubject::query()->where('person_id', $student->id)->where('subject_id', $request->get('subject_id'))->first();
         $att = array();
 
-        for ($i = 1 ; $i <= $latestSemester->number_of_weeks; $i++){
+        for ($i = 1; $i <= $latestSemester->number_of_weeks; $i++) {
 
             if ($request->get('theory_id') !== "null") {
-                array_push($att,['taken_subject_id' => $ts->id,'week' => $i,'theory' => 1]);
+                array_push($att, ['taken_subject_id' => $ts->id, 'week' => $i, 'theory' => 1]);
             }
             if ($request->get('practical_id') !== "null") {
-                array_push($att,['taken_subject_id' => $ts->id,'week' => $i,'theory' => 0]);
-
+                array_push($att, ['taken_subject_id' => $ts->id, 'week' => $i, 'theory' => 0]);
             }
         }
         StdAttendance::query()->insert($att);
@@ -92,7 +114,6 @@ class StudentController extends Controller
             $attributes['given_subject_id_th'] = $request->get('theory_id');
         } else {
             $attributes['given_subject_id_th'] = null;
-
         }
         if ($request->get('practical_id') !== "null") {
             $attributes['given_subject_id_pr'] = $request->get('practical_id');
@@ -108,7 +129,6 @@ class StudentController extends Controller
     {
         $takenSubject->delete();
         return response(['status' => 'ok', 'message' => 'تم إزالة المقرر بنجاح']);
-
     }
 
 

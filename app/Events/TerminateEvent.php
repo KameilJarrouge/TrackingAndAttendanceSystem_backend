@@ -10,21 +10,17 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TestEvent
+class TerminateEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    public $object;
-
 
     /**
      * Create a new event instance.
      *
-     * @param $message
+     * @return void
      */
-    public function __construct($object)
+    public function __construct()
     {
-        $this->object = $object;
     }
 
     /**
@@ -36,9 +32,4 @@ class TestEvent
     {
         return new Channel('pythonChannel');
     }
-
-    //    public function broadcastAs()
-    //    {
-    //        return 'test';
-    //    }
 }

@@ -10,21 +10,24 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TestEvent
+class GsRestartEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $object;
-
+    public $gsId;
+    public $restart_start_time;
+    public $restart_duration;
 
     /**
      * Create a new event instance.
      *
-     * @param $message
+     * @return void
      */
-    public function __construct($object)
+    public function __construct($gsId, $restart_start_time, $restart_duration)
     {
-        $this->object = $object;
+        $this->gsId = $gsId;
+        $this->restart_start_time = $restart_start_time;
+        $this->restart_duration = $restart_duration;
     }
 
     /**
@@ -36,9 +39,4 @@ class TestEvent
     {
         return new Channel('pythonChannel');
     }
-
-    //    public function broadcastAs()
-    //    {
-    //        return 'test';
-    //    }
 }

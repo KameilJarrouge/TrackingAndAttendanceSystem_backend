@@ -117,6 +117,13 @@ class GivenSubject extends Model
         $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now()) + 1;
         return $this->hasManyThrough(StdAttendance::class, TakenSubject::class, $foreignId, 'taken_subject_id', 'id', 'id')->where('std_attendances.week', $weekNumber)->where('std_attendances.theory', $this->is_theory);
     }
+    public function activeWeekAttendanceProfessor()
+    {
+
+        $currentSemester = Semester::getLatest();
+        $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now()) + 1;
+        return $this->attendances()->where('week', '=', $weekNumber);
+    }
 
     public function activeWeekAttendanceAttended()
     {

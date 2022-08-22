@@ -7,24 +7,27 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TestEvent
+class GsExtendEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $object;
 
+    public $gsId;
+    public $extendDuration;
 
     /**
      * Create a new event instance.
      *
-     * @param $message
+     * @return void
      */
-    public function __construct($object)
+    public function __construct($gsId, $extendDuration)
     {
-        $this->object = $object;
+        $this->gsId = $gsId;
+        $this->extendDuration = $extendDuration;
     }
 
     /**
@@ -36,9 +39,4 @@ class TestEvent
     {
         return new Channel('pythonChannel');
     }
-
-    //    public function broadcastAs()
-    //    {
-    //        return 'test';
-    //    }
 }

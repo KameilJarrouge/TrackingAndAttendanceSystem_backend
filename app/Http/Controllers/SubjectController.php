@@ -20,30 +20,29 @@ class SubjectController extends Controller
 
     public function professors(Request $request, Subject $subject)
     {
-//        return response($subject->professors()->withPivot([
-//            'id', 'cam_id', 'semester_id',
-//            'time', 'day', 'group', 'is_theory',
-//            'attendance_pre', 'attendance_post', 'attendance_present'])
-//            ->wherePivot('semester_id', '=', auth()->user()->semester_id)
-//            ->with('givenSubjects', function ($query) use ($subject) {
-//                $query->where('subject_id', $subject->id)->where('id','pivot.id')->with('cam');
-//            })
-//            ->paginate($request->get('perPage')));
-        return response($subject->givenSubjects()->where('semester_id', '=',auth()->user()->semester_id)->with(['cam','professor'])->paginate($request->get('perPage')));
-
+        //        return response($subject->professors()->withPivot([
+        //            'id', 'cam_id', 'semester_id',
+        //            'time', 'day', 'group', 'is_theory',
+        //            'attendance_pre', 'attendance_post', 'attendance_present'])
+        //            ->wherePivot('semester_id', '=', auth()->user()->semester_id)
+        //            ->with('givenSubjects', function ($query) use ($subject) {
+        //                $query->where('subject_id', $subject->id)->where('id','pivot.id')->with('cam');
+        //            })
+        //            ->paginate($request->get('perPage')));
+        return response($subject->givenSubjects()->where('semester_id', '=', auth()->user()->semester_id)->with(['cam', 'professor'])->paginate($request->get('perPage')));
     }
 
     public function students(Request $request, Subject $subject)
     {
         return response($subject->students()->withPivot([
             'id', 'semester_id',
-            'attendance_warning', 'suspended', 'given_subject_id_pr', 'given_subject_id_th'])
+            'attendance_warning', 'suspended', 'given_subject_id_pr', 'given_subject_id_th'
+        ])
             ->wherePivot('semester_id', '=', auth()->user()->semester_id)
-//                ->with('givenSubjects',function ($query) use($subject){
-//                    $query->where('subject_id',$subject->id)->with('cam');
-//                })
+            //                ->with('givenSubjects',function ($query) use($subject){
+            //                    $query->where('subject_id',$subject->id)->with('cam');
+            //                })
             ->paginate($request->get('perPage')));
-
     }
 
     public function studentsDetailed(Request $request, Subject $subject)
@@ -63,9 +62,9 @@ class SubjectController extends Controller
             ->whereHas('givenSubjects', function ($query) use ($subject) {
                 $query->where('subject_id', $subject->id)->where('semester_id', '=', auth()->user()->semester_id);
             })
-            ->with(['givenSubjects'=>function ($query) use ($subject) {
+            ->with(['givenSubjects' => function ($query) use ($subject) {
                 $query->where('subject_id', $subject->id);
-            },'givenSubjects.attendances'])->paginate($request->get('perPage')));
+            }, 'givenSubjects.attendances'])->paginate($request->get('perPage')));
     }
 
     public function addProfessor(Request $request, Subject $subject)
@@ -91,7 +90,8 @@ class SubjectController extends Controller
             'attendance_pre' => $request->get('attendance_pre'),
             'attendance_post' => $request->get('attendance_post'),
             'attendance_present' => $request->get('attendance_present'),
-            'semester_id' => $semester->id);
+            'semester_id' => $semester->id
+        );
         if ($request->get('cam_id') !== null) {
             // unique day and time per camera
             $count = GivenSubject::query()->where('time', $request->get('time'))
@@ -105,20 +105,17 @@ class SubjectController extends Controller
         }
         if ($request->get('group') !== null) {
             $attr['group'] = $request->get('group');
-
         }
         $attr['person_id'] = $request->get('person_id');
         $attr['subject_id'] = $subject->id;
-//        $subject->professors()->attach($request->get('person_id'), $attr);
+        //        $subject->professors()->attach($request->get('person_id'), $attr);
         $gs = new GivenSubject($attr);
         $gs->save();
-//        $gs = GivenSubject::query()->where('subject_id', $subject->id)->where('person_id', $request->get('person_id'))->first();
+        //        $gs = GivenSubject::query()->where('subject_id', $subject->id)->where('person_id', $request->get('person_id'))->first();
         $att = array();
         for ($i = 1; $i <= $semester->number_of_weeks; $i++) {
 
             array_push($att, ['given_subject_id' => $gs->id, 'week' => $i]);
-
-
         }
         ProfAttendance::query()->insert($att);
 
@@ -152,7 +149,6 @@ class SubjectController extends Controller
             }
             if ($request->get('practical_id') !== "null") {
                 array_push($att, ['taken_subject_id' => $ts->id, 'week' => $i, 'theory' => 0]);
-
             }
         }
         StdAttendance::query()->insert($att);
@@ -184,7 +180,7 @@ class SubjectController extends Controller
         $all = GivenSubject::query()->where('day', '=', now()->dayOfWeek)->with(['professor', 'subject'])->get();
         $split = $all->mapToGroups(function ($givenSubject) {
             $startTime = Carbon::parse($givenSubject->time)->subtract('minutes', $givenSubject->attendance_pre);
-            $endTime = Carbon::parse($givenSubject->time)->addMinutes($givenSubject->attendance_post + $givenSubject->attendance_present + ($givenSubject->attendance_extend * 2));
+            $endTime = Carbon::parse($givenSubject->time)->addMinutes($givenSubject->attendance_post + $givenSubject->attendance_present + ($givenSubject->attendance_extend));
             if (Carbon::now()->isBefore($startTime)) { // future
                 return ['future' => $givenSubject];
             }
@@ -201,7 +197,6 @@ class SubjectController extends Controller
             return ['current' => $givenSubject];
         });
         return response($split);
-
     }
 
     public function subjectOptionsStd(Request $request, Student $student)
@@ -223,9 +218,9 @@ class SubjectController extends Controller
     public function subjectOptionsProf(Request $request)
     {
         return response(Subject::all());
-//        return response(Subject::query()->whereDoesntHave('professors', function ($query) use($professor) {
-//            $query->where('people.id', '=', $professor->id);
-//        })->get());
+        //        return response(Subject::query()->whereDoesntHave('professors', function ($query) use($professor) {
+        //            $query->where('people.id', '=', $professor->id);
+        //        })->get());
     }
 
     public function givenSubjectOptionsTh(Subject $subject)
@@ -251,7 +246,6 @@ class SubjectController extends Controller
             'department' => $request->get('department'),
         ]);
         return response(['status' => 'ok', 'message' => 'تم إضافة المقرر']);
-
     }
 
     /**
@@ -279,7 +273,6 @@ class SubjectController extends Controller
             'department' => $request->get('department'),
         ]);
         return response(['status' => 'ok', 'message' => 'تم تعديل المقرر']);
-
     }
 
     /**
@@ -292,6 +285,5 @@ class SubjectController extends Controller
     {
         $subject->delete();
         return response(['status' => 'ok', 'message' => 'تم إزالة المقرر']);
-
     }
 }

@@ -10,52 +10,66 @@ class TakenSubject extends Model
 {
     use HasFactory;
 
-    protected $guarded= [
+    protected $guarded = [
         'id',
     ];
 
-    public function student(){
-        return $this->belongsTo(Student::class, 'person_id','id');
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'person_id', 'id');
     }
 
-    public function subject(){
+    public function subject()
+    {
         return $this->belongsTo(Subject::class, 'subject_id', 'id');
     }
 
-    public function activeWeekTh(){
+    public function activeWeekTh()
+    {
         $currentSemester = Semester::getLatest();
         $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now());
-        return $this->attendancesTh()->where('week',$weekNumber);
+        return $this->attendancesTh()->where('week', $weekNumber);
     }
 
-    public function activeWeekPr(){
+    public function activeWeekPr()
+    {
         $currentSemester = Semester::getLatest();
         $weekNumber = Carbon::parse($currentSemester->semester_start)->diffInWeeks(Carbon::now());
-        return $this->attendancesPr()->where('week',$weekNumber);
+        return $this->attendancesPr()->where('week', $weekNumber);
     }
 
 
-    public function attendances(){
-        return $this->hasMany(StdAttendance::class,'taken_subject_id','id');
+    public function attendances()
+    {
+        return $this->hasMany(StdAttendance::class, 'taken_subject_id', 'id');
     }
 
-    public function attendancesTh(){
-        return $this->hasMany(StdAttendance::class,'taken_subject_id','id')->where('theory',1);
-    }
-    public function attendancesPr(){
-        return $this->hasMany(StdAttendance::class,'taken_subject_id','id')->where('theory',0);
+    public function absentAttendance()
+    {
+        return $this->attendances()->where('visited', 1)->where('attended', 0)->where('present', 0)->where('skipped', 0);
     }
 
-    public function thSubjectGiven(){
-        return $this->belongsTo(GivenSubject::class,'given_subject_id_th','id');
+    public function attendancesTh()
+    {
+        return $this->hasMany(StdAttendance::class, 'taken_subject_id', 'id')->where('theory', 1);
+    }
+    public function attendancesPr()
+    {
+        return $this->hasMany(StdAttendance::class, 'taken_subject_id', 'id')->where('theory', 0);
     }
 
-    public function prSubjectGiven(){
-        return $this->belongsTo(GivenSubject::class,'given_subject_id_pr','id');
+    public function thSubjectGiven()
+    {
+        return $this->belongsTo(GivenSubject::class, 'given_subject_id_th', 'id');
     }
 
-    public function semester(){
-        return $this->belongsTo(Semester::class, 'semester_id','id');
+    public function prSubjectGiven()
+    {
+        return $this->belongsTo(GivenSubject::class, 'given_subject_id_pr', 'id');
     }
 
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id', 'id');
+    }
 }

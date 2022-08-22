@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GsExtendEvent;
+use App\Events\GsRestartEvent;
 use App\Models\GivenSubject;
+use App\Models\ProfAttendance;
 use App\Models\Semester;
+use App\Models\StdAttendance;
 use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Intervention\Image\Facades\Image;
 
 class GivenSubjectController extends Controller
 {
@@ -28,12 +34,82 @@ class GivenSubjectController extends Controller
             ->where('day', now()->dayOfWeek)
             ->where('semester_id', $semester->id)
             ->whereHas('cam')
-            ->with('cam')->get();
+            ->with(['cam', 'professor', 'professor.images'])->get();
 
-        foreach ($gs as $givenSubject) {
+        $split = $gs->filter(function ($givenSubject) {
+            $endTime = Carbon::parse($givenSubject->time)->addMinutes($givenSubject->attendance_post + $givenSubject->attendance_present + ($givenSubject->attendance_extend));
+            if (Carbon::now()->isAfter($endTime)) { // previous
+                if ($givenSubject->restart_start_time !== null) {
+                    if (!Carbon::now()->isAfter(Carbon::parse($givenSubject->restart_start_time)->addMinutes($givenSubject->restart_duration))) { // after restart as well
+                        return $givenSubject;
+                    }
+                }
+            } else {
+                return $givenSubject;
+            }
+        });
+
+
+
+        foreach ($split as $givenSubject) {
             $givenSubject->std_attendances = $givenSubject->activeWeekAttendance()->with(['takenSubject', 'takenSubject.student', 'takenSubject.student.images'])->get();
+            $givenSubject->prof_attendances = $givenSubject->activeWeekAttendanceProfessor()->first('id');
         }
-        return response($gs);
+        return response($split);
+    }
+
+    public function attendancePython(Request $request, GivenSubject $givenSubject)
+    {
+        // return response($request->hasFile("frame") ? "true" : "false", 500);
+        // return response($request->all(), 500);
+        $destinationPath = storage_path('app/public/attendance');
+        $imageLink = "";
+        if ($request->hasFile('frame')) {
+            $image = $request->file('frame');
+            $name = Carbon::now()->timestamp . '.' . $image->extension();
+            $img = Image::make($image->path());
+            $img->save($destinationPath . '/' . $name);
+            $imageLink = asset('storage/attendance/' . $name);
+        }
+        if ($request->get('profAttId') !== "-1") {
+            ProfAttendance::find($request->get('profAttId'))->update(['attended' => 1, 'verification_img' => $imageLink]);
+        }
+        if ($request->get('isAttended')) {
+            foreach ($request->get('recognitions') as $stdAttendanceId) {
+                StdAttendance::query()->find($stdAttendanceId)->update([
+                    'verification_img' => $imageLink,
+                    'attended' => 1,
+                ]);
+            }
+        } else {
+            foreach ($request->get('recognitions') as $stdAttendanceId) {
+                StdAttendance::query()->find($stdAttendanceId)->update([
+                    'verification_img' => $imageLink,
+                    'present' => 1,
+                ]);
+            }
+        }
+    }
+
+    public function visitWeek(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->activeWeekAttendanceProfessor()->update(['visited' => 1]);
+
+        $attIds = $request->get('attIds');
+        StdAttendance::whereIn('id', $attIds)->update(['visited' => 1]);
+    }
+
+    public function skipStdWeek(Request $request, GivenSubject $givenSubject)
+    {
+        $attIds = $request->get('attIds');
+        StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
+    }
+    public function skipWeek(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->activeWeekAttendanceProfessor()->update(['skipped' => 1]);
+        $givenSubject->activeWeekAttendance()->update(['skipped' => 1]);
+        // $attIds = $request->get('attIds');
+        // StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
     }
 
     /**
@@ -59,16 +135,21 @@ class GivenSubjectController extends Controller
     }
 
 
-    public function restart(Request $request, GivenSubject $givenSubject)
-    {
-        $givenSubject->update(['attendance_extend' => $request->get('extend_duration')]);
-
-        return response(['status' => 'ok', 'message' => 'تم تمديد الحضور بنجاح']);
-    }
-
     public function extend(Request $request, GivenSubject $givenSubject)
     {
-        $givenSubject->update(['restart_start_time' => $request->get('extend_duration'), 'restart_duration' => $request->get('restart_duration')]);
+        $givenSubject->update(['attendance_extend' => $request->get('extend_duration')]);
+        broadcast(new GsExtendEvent($givenSubject->id, $request->get('extend_duration')));
+        return response(['status' => 'ok', 'message' => 'تم تمديد الحضور بنجاح']);
+    }
+    public function resetExtension(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->update(['attendance_extend' => 0]);
+    }
+
+    public function restart(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->update(['restart_start_time' => $request->get('restart_start_time'), 'restart_duration' => $request->get('restart_duration')]);
+        broadcast(new GsRestartEvent($givenSubject->id, $request->get('restart_start_time'), $request->get('restart_duration')));
 
         return response(['status' => 'ok', 'message' => 'تم إعادة تسجيل الحضور بنجاح']);
     }
