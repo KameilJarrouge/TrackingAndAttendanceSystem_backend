@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('day'); // 0 sun
             $table->string('group')->default("");
             $table->boolean('is_theory');
+            $table->boolean('skipped')->default(false);
             $table->integer('attendance_pre')->nullable();
             $table->integer('attendance_post')->nullable();
             $table->integer('attendance_present')->nullable();

@@ -11,32 +11,30 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GsExtendEvent implements ShouldBroadcastNow
+class AttendanceCountEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $color;
 
-    public $gsId;
-    public $extendDuration;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($gsId, $extendDuration)
+    public function __construct($color)
     {
-        $this->gsId = $gsId;
-        $this->extendDuration = $extendDuration;
+        $this->color = $color;
     }
 
-    /**s
+    /**
      * Get the channels the event should broadcast on.
      *
      * @return \Illuminate\Broadcasting\Channel|array
      */
     public function broadcastOn()
     {
-        return new Channel('pythonChannel');
+        return new Channel('reactChannel');
     }
 }

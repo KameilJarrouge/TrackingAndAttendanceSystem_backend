@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LogEvent;
 use App\Models\Cam;
+use App\Models\Log;
+use App\Models\Person;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Intervention\Image\Facades\Image;
 
 class CamController extends Controller
 {
@@ -36,6 +41,68 @@ class CamController extends Controller
             return response(Cam::query()->where('location', 'like', '%' . $identifier . '%')
                 ->paginate($request->get('perPage')));
         }
+    }
+    public function preprocessList($list)
+    {
+        if ($list == "empty") {
+            return  array();
+        } else {
+            return  explode(',', $list);
+        }
+    }
+
+    public function logPython(Request $request, Cam $cam)
+    {
+        $destinationPath = storage_path('app/public/log');
+        $imageLink = "";
+        if ($request->hasFile('frame')) {
+            $image = $request->file('frame');
+            $name = Carbon::now()->timestamp . '.' . $image->extension();
+            $img = Image::make($image->path());
+            $img->save($destinationPath . '/' . $name);
+            $imageLink = asset('storage/log/' . $name);
+        }
+        $peopleIds = $this->preprocessList($request->get('recognitions'));
+        $peopleQuery = Person::query()->whereIn('id', $peopleIds);
+        if ($cam->type === 1) {
+            $peopleQuery->update(['on_campus' => 1]);
+        } elseif ($cam->type === 2) {
+            $peopleQuery->update(['on_campus' => 0]);
+        }
+        $people = $peopleQuery->get(['id', 'track', 'on_blacklist']);
+        $logRecords = array();
+        $tracked = false;
+        $blacklisted = false;
+        foreach ($people as $person) {
+            array_push($logRecords, [
+                'cam_id' => $cam->id,
+                'person_id' => $person->id,
+                'timestamp' => Carbon::now()->toDateTimeString(),
+                'unidentified' => 0,
+                'ignore' => 0,
+                'verification_img' => $person->track === 1 ? $imageLink : "",
+                'warning_flag' => $person->on_blacklist,
+            ]);
+            $tracked = $tracked || ($person->track === 1);
+            $blacklisted = $blacklisted || ($person->on_blacklist);
+        }
+        for ($i = 0; $i < (int)$request->get('unknown'); $i++) {
+            array_push($logRecords, [
+                'cam_id' => $cam->id,
+                // 'person_id' => "Null",
+                'timestamp' => Carbon::now()->toDateTimeString(),
+                'unidentified' => 1,
+                'ignore' => 0,
+                'verification_img' => $imageLink,
+                'warning_flag' => 0,
+            ]);
+        }
+        if ($blacklisted || (int)$request->get('unknows') !== 0) {
+            broadcast(new LogEvent("text-red-500"))->toOthers();
+        } elseif ($tracked) {
+            broadcast(new LogEvent("text-yellow-500"))->toOthers();
+        }
+        Log::insert($logRecords);
     }
 
     public function log(Request $request, Cam $cam)
@@ -72,7 +139,7 @@ class CamController extends Controller
         } else {
             $logQuery = $logQuery->with('person');
         }
-        $logs = $logQuery->paginate($request->get('perPage'));
+        $logs = $logQuery->orderByDesc('timestamp')->paginate($request->get('perPage'));
         return response($logs);
     }
 

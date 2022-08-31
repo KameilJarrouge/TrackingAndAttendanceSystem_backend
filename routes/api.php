@@ -97,6 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cameras/{cam}/log', [CamController::class, 'log']);
     Route::get('/cameras/{cam}/schedule', [CamController::class, 'schedule']);
     Route::delete('/cameras/{cam}/delete', [CamController::class, 'destroy']);
+    Route::post('/cameras/{cam}/log-python', [CamController::class, 'logPython']);
 
     // =================================================================================================== Schedule
     Route::delete('/schedules/{schedule}/delete', [ScheduleController::class, 'destroy']);
@@ -138,12 +139,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/given-subjects/{givenSubject}', [GivenSubjectController::class, 'show']);
     Route::put('/given-subjects/{givenSubject}/restart', [GivenSubjectController::class, 'restart']);
     Route::put('/given-subjects/{givenSubject}/extend', [GivenSubjectController::class, 'extend']);
-    Route::put('/given-subjects/{givenSubject}/reset-extension', [GivenSubjectController::class, 'resetExtension']);
+    Route::put('/given-subjects/{givenSubject}/reset', [GivenSubjectController::class, 'reset']);
 
     Route::post('/given-subjects/{givenSubject}/attendance-python', [GivenSubjectController::class, 'attendancePython']);
-    Route::put('/given-subjects/{givenSubject}/visit-this-week', [GivenSubjectController::class, 'visitWeek']);
+    Route::post('/given-subjects/{givenSubject}/visit-this-week', [GivenSubjectController::class, 'visitWeek']);
     Route::put('/given-subjects/{givenSubject}/skip-this-week', [GivenSubjectController::class, 'skipWeek']);
-    Route::put('/given-subjects/{givenSubject}/skip-this-students-week', [GivenSubjectController::class, 'skipWeek']);
+    Route::put('/given-subjects/{givenSubject}/unskip-this-week', [GivenSubjectController::class, 'unSkipWeek']);
+    Route::post('/given-subjects/{givenSubject}/skip-this-students-week', [GivenSubjectController::class, 'skipStdWeek']);
+    Route::get('/given-subjects/{givenSubject}/python-subject', [GivenSubjectController::class, 'pythonSubject']);
 
 
 

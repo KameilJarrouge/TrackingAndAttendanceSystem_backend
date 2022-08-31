@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\AttendanceCountEvent;
 use App\Models\Semester;
 use App\Models\Setting;
 use App\Models\StdAttendance;
@@ -58,8 +59,16 @@ class StudentController extends Controller
                 array_push($warningGroup, $takenSubject->id);
             }
         }
-        TakenSubject::whereIn('id', $warningGroup)->update(['attendance_warning' => 1]);
-        TakenSubject::whereIn('id', $suspensionGroup)->update(['suspended' => 1]);
+        if ($suspensionGroup) {
+            broadcast(new AttendanceCountEvent("text-red-500"))->toOthers();
+            TakenSubject::whereIn('id', $suspensionGroup)->update(['suspended' => 1]);
+        }
+        if ($warningGroup) {
+            if (!$suspensionGroup) {
+                broadcast(new AttendanceCountEvent("text-yellow-500"))->toOthers();
+            }
+            TakenSubject::whereIn('id', $warningGroup)->update(['attendance_warning' => 1]);
+        }
     }
 
     /**

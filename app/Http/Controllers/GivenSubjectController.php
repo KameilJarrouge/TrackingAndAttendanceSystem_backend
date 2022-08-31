@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GSAttendanceEvent;
 use App\Events\GsExtendEvent;
+use App\Events\GSFinishedEvent;
 use App\Events\GsRestartEvent;
 use App\Models\GivenSubject;
 use App\Models\ProfAttendance;
@@ -25,7 +27,13 @@ class GivenSubjectController extends Controller
         //
     }
 
-
+    public function pythonSubject(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->loadMissing(['cam', 'professor', 'professor.images']);
+        $givenSubject->std_attendances = $givenSubject->activeWeekAttendance()->with(['takenSubject', 'takenSubject.student', 'takenSubject.student.images'])->get();
+        $givenSubject->prof_attendances = $givenSubject->activeWeekAttendanceProfessor()->first('id');
+        return response($givenSubject);
+    }
     public function pythonGivenSubjects()
     {
         $semester = Semester::getLatest();
@@ -58,10 +66,17 @@ class GivenSubjectController extends Controller
         return response($split);
     }
 
+    public function preprocessList($list)
+    {
+        if ($list == "empty") {
+            return  array();
+        } else {
+            return  explode(',', $list);
+        }
+    }
+
     public function attendancePython(Request $request, GivenSubject $givenSubject)
     {
-        // return response($request->hasFile("frame") ? "true" : "false", 500);
-        // return response($request->all(), 500);
         $destinationPath = storage_path('app/public/attendance');
         $imageLink = "";
         if ($request->hasFile('frame')) {
@@ -72,45 +87,67 @@ class GivenSubjectController extends Controller
             $imageLink = asset('storage/attendance/' . $name);
         }
         if ($request->get('profAttId') !== "-1") {
-            ProfAttendance::find($request->get('profAttId'))->update(['attended' => 1, 'verification_img' => $imageLink]);
+            ProfAttendance::find($request->get('profAttId'))->update(['attended' => 1, 'verification_img' => $imageLink, 'timestamp' => Carbon::now()->toDateTimeString(),]);
         }
         if ($request->get('isAttended')) {
-            foreach ($request->get('recognitions') as $stdAttendanceId) {
+            foreach ($this->preprocessList($request->get('recognitions')) as $stdAttendanceId) {
                 StdAttendance::query()->find($stdAttendanceId)->update([
                     'verification_img' => $imageLink,
                     'attended' => 1,
+                    'timestamp' => Carbon::now()->toDateTimeString(),
                 ]);
             }
         } else {
-            foreach ($request->get('recognitions') as $stdAttendanceId) {
+            foreach ($this->preprocessList($request->get('recognitions')) as $stdAttendanceId) {
                 StdAttendance::query()->find($stdAttendanceId)->update([
                     'verification_img' => $imageLink,
                     'present' => 1,
+                    'timestamp' => Carbon::now()->toDateTimeString(),
                 ]);
             }
         }
+        broadcast(new GSAttendanceEvent($givenSubject->id));
     }
 
     public function visitWeek(Request $request, GivenSubject $givenSubject)
     {
+        // return response($this->preprocessList($request->get('attIds')), 500);
         $givenSubject->activeWeekAttendanceProfessor()->update(['visited' => 1]);
+        $givenSubject->activeWeekAttendance()->update(['visited' => 1]);
 
-        $attIds = $request->get('attIds');
-        StdAttendance::whereIn('id', $attIds)->update(['visited' => 1]);
+        // $attIds = $this->preprocessList($request->get('attIds'));
+        // StdAttendance::whereIn('id', $attIds)->update(['visited' => 1]);
     }
+
 
     public function skipStdWeek(Request $request, GivenSubject $givenSubject)
     {
-        $attIds = $request->get('attIds');
-        StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
+        // $attIds = $this->preprocessList($request->get('attIds'));
+        // StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
+        $givenSubject->activeWeekAttendance()->update(['skipped' => 1]);
     }
     public function skipWeek(Request $request, GivenSubject $givenSubject)
     {
+        $givenSubject->update(['skipped' => 1]);
         $givenSubject->activeWeekAttendanceProfessor()->update(['skipped' => 1]);
         $givenSubject->activeWeekAttendance()->update(['skipped' => 1]);
+        return response(['status' => 'ok', 'message' => 'تم تبرير الحضور بنجاح']);
+
         // $attIds = $request->get('attIds');
         // StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
     }
+
+    public function unSkipWeek(Request $request, GivenSubject $givenSubject)
+    {
+        $givenSubject->update(['skipped' => 0]);
+        $givenSubject->activeWeekAttendanceProfessor()->update(['skipped' => 0]);
+        $givenSubject->activeWeekAttendance()->update(['skipped' => 0]);
+        return response(['status' => 'ok', 'message' => 'تم إالغاء تبرير الحضور بنجاح']);
+
+        // $attIds = $request->get('attIds');
+        // StdAttendance::whereIn('id', $attIds)->update(['skipped' => 1]);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -141,14 +178,16 @@ class GivenSubjectController extends Controller
         broadcast(new GsExtendEvent($givenSubject->id, $request->get('extend_duration')));
         return response(['status' => 'ok', 'message' => 'تم تمديد الحضور بنجاح']);
     }
-    public function resetExtension(Request $request, GivenSubject $givenSubject)
+    public function reset(Request $request, GivenSubject $givenSubject)
     {
-        $givenSubject->update(['attendance_extend' => 0]);
+        broadcast(new GSFinishedEvent('hi'));
+        $givenSubject->update(['attendance_extend' => 0, 'restart_start_time' => null, 'restart_duration' => null, 'skipped' => 1]);
     }
 
     public function restart(Request $request, GivenSubject $givenSubject)
     {
         $givenSubject->update(['restart_start_time' => $request->get('restart_start_time'), 'restart_duration' => $request->get('restart_duration')]);
+
         broadcast(new GsRestartEvent($givenSubject->id, $request->get('restart_start_time'), $request->get('restart_duration')));
 
         return response(['status' => 'ok', 'message' => 'تم إعادة تسجيل الحضور بنجاح']);

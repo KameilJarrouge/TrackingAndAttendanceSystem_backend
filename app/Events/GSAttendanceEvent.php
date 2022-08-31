@@ -11,32 +11,28 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GsExtendEvent implements ShouldBroadcastNow
+class GSAttendanceEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-
     public $gsId;
-    public $extendDuration;
-
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($gsId, $extendDuration)
+    public function __construct($gsId)
     {
         $this->gsId = $gsId;
-        $this->extendDuration = $extendDuration;
     }
 
-    /**s
+    /**
      * Get the channels the event should broadcast on.
      *
      * @return \Illuminate\Broadcasting\Channel|array
      */
     public function broadcastOn()
     {
-        return new Channel('pythonChannel');
+        return new Channel('attendanceChannel' . $this->gsId);
     }
 }

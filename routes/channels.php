@@ -20,3 +20,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('pythonChannel', function ($user, $id) {
     return true;
 });
+Broadcast::channel('reactChannel', function ($user, $id) {
+    return true;
+});

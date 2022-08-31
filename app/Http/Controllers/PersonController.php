@@ -16,9 +16,10 @@ class PersonController extends Controller
      */
     public function index(Request $request)
     {
+        // return response($request->all());
         $constraints = array();
         $identifier = "";
-        if ($request->get('identifier') !== null) {
+        if ($request->get('identifier') !== "null") {
             $identifier = $request->get('identifier');
         }
         if ($request->get('identity') !== "-1") {
@@ -59,6 +60,11 @@ class PersonController extends Controller
             ->with('images:id,person_id,url')
             ->whereHas('images')
             ->get(['id', 'identity']));
+    }
+
+    public function test(Request $request)
+    {
+        return response($request->all(), 500);
     }
 
     /**
@@ -151,7 +157,7 @@ class PersonController extends Controller
         } else {
             $logQuery = $logQuery->with('cam');
         }
-        $logs = $logQuery->paginate($request->get('perPage'));
+        $logs = $logQuery->orderByDesc('timestamp')->paginate($request->get('perPage'));
         return response($logs);
     }
 
