@@ -28,4 +28,8 @@ class Professor extends Person
     {
         return $this->hasMany(GivenSubject::class, 'person_id', 'id');
     }
+    public function user()
+    {
+        return $this->hasOne(User::class, 'person_id', 'id');
+    }
 }

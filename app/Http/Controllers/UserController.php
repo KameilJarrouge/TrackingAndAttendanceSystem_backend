@@ -65,7 +65,7 @@ class UserController extends Controller
         if ($request->get('isAdmin') !== "-1") {
             $query = $query->where('isAdmin', $request->get('isAdmin'));
         }
-        $query = $query->where('id', '<>', \auth()->user()->id)->where('python', '<>', 1);
+        $query = $query->where('id', '<>', \auth()->user()->id)->where('python', '<>', 1)->with('professor');
         return response($query->paginate($request->get('perPage')));
     }
 
@@ -84,13 +84,23 @@ class UserController extends Controller
         if (User::query()->where('head', 1)->count() === 0) {
             $head = 1;
         }
+        if ($request->get('isAdmin') === 0) {
+            $user = User::query()->create([
+                'username' => $request->get('username'),
+                'password' => bcrypt($request->get('password')),
+                'isAdmin' => $request->get('isAdmin'),
+                'head' => $head,
+                'person_id' => $request->get('prof_id'),
+            ]);
+        } else {
 
-        $user = User::query()->create([
-            'username' => $request->get('username'),
-            'password' => bcrypt($request->get('password')),
-            'isAdmin' => $request->get('isAdmin'),
-            'head' => $head,
-        ]);
+            $user = User::query()->create([
+                'username' => $request->get('username'),
+                'password' => bcrypt($request->get('password')),
+                'isAdmin' => $request->get('isAdmin'),
+                'head' => $head,
+            ]);
+        }
 
 
         return response(['status' => 'ok', 'message' => 'تم إضافة المستخدم بنجاح']);

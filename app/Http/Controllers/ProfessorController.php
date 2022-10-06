@@ -22,6 +22,11 @@ class ProfessorController extends Controller
         //
     }
 
+    public function userableProfessors()
+    {
+        return Professor::query()->whereDoesntHave('user')->get();
+    }
+
     public function professorOptions()
     {
         return response(Professor::all());

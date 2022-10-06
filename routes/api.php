@@ -30,6 +30,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Route::get('/professors/userable-professors', [ProfessorController::class, 'userableProfessors']);
+
 
 // =================================================================================================== Auth
 Route::post('/login', [UserController::class, 'login']);
@@ -120,12 +122,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/taken-subjects/calculate-absence', [StudentController::class, 'calculateAbsence']);
 
     // =================================================================================================== Professors
+    Route::get('/professors/userable-professors', [ProfessorController::class, 'userableProfessors']);
     Route::get('/professors/{professor}', [ProfessorController::class, 'show']);
     Route::get('/professors/{professor}/subjects', [ProfessorController::class, 'givenSubjects']);
     Route::get('/professors/{professor}/dashboard-subjects', [ProfessorController::class, 'dashboardSubjects']);
     Route::get('/professors/{professor}/given-subjects', [ProfessorController::class, 'givenSubjectsDetailed']);
     Route::post('/professors/{professor}/add-subject', [ProfessorController::class, 'addSubject']);
     Route::get('/professors/subjects/options', [ProfessorController::class, 'professorOptions']);
+
 
     // =================================================================================================== Given Subjects
     Route::get('/given-subjects/{subject}/theory', [SubjectController::class, 'givenSubjectOptionsTh']);
