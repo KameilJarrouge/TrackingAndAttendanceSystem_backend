@@ -60,12 +60,12 @@ class StudentController extends Controller
             }
         }
         if ($suspensionGroup) {
-            broadcast(new AttendanceCountEvent("text-red-500"))->toOthers();
+            broadcast(new AttendanceCountEvent("red"))->toOthers();
             TakenSubject::whereIn('id', $suspensionGroup)->update(['suspended' => 1]);
         }
         if ($warningGroup) {
             if (!$suspensionGroup) {
-                broadcast(new AttendanceCountEvent("text-yellow-500"))->toOthers();
+                broadcast(new AttendanceCountEvent("yellow"))->toOthers();
             }
             TakenSubject::whereIn('id', $warningGroup)->update(['attendance_warning' => 1]);
         }

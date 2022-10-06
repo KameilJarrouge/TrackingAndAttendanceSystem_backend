@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\CamController;
 use App\Http\Controllers\GivenSubjectController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\PersonController;
@@ -115,6 +116,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/taken-subjects/{takenSubject}/update-subject', [StudentController::class, 'updateSubject']);
     Route::delete('/taken-subjects/{takenSubject}/remove-subject', [StudentController::class, 'removeSubject']);
     Route::get('/taken-subjects/{takenSubject}/info', [TakenSubjectController::class, 'info']);
+    Route::get('/taken-subjects/warnings', [TakenSubjectController::class, 'warnings']);
     Route::put('/taken-subjects/calculate-absence', [StudentController::class, 'calculateAbsence']);
 
     // =================================================================================================== Professors
@@ -153,6 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // =================================================================================================== Logs
     Route::put('/logs/{log}/ignore', [LogController::class, 'ignore']);
+    Route::get('/logs/tracking', [LogController::class, 'tracking']);
     // =================================================================================================== Student Attendance
     Route::put('/student-attendance/{stdAttendance}/update', [StdAttendanceController::class, 'update']);
     // =================================================================================================== Professor Attendance
@@ -163,4 +166,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}/update', [UserController::class, 'update']);
     Route::delete('/users/{user}/delete', [UserController::class, 'destroy']);
+    // =================================================================================================== Holidays
+    Route::get('/holidays', [HolidayController::class, 'index']);
+    Route::post('/holidays/add', [HolidayController::class, 'store']);
+    Route::get('/holidays/{holiday}', [HolidayController::class, 'show']);
+    Route::put('/holidays/{holiday}/update', [HolidayController::class, 'update']);
+    Route::delete('/holidays/{holiday}/delete', [HolidayController::class, 'destroy']);
 });

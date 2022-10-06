@@ -7,6 +7,7 @@ use App\Events\GsExtendEvent;
 use App\Events\GSFinishedEvent;
 use App\Events\GsRestartEvent;
 use App\Models\GivenSubject;
+use App\Models\Holiday;
 use App\Models\ProfAttendance;
 use App\Models\Semester;
 use App\Models\StdAttendance;
@@ -34,8 +35,18 @@ class GivenSubjectController extends Controller
         $givenSubject->prof_attendances = $givenSubject->activeWeekAttendanceProfessor()->first('id');
         return response($givenSubject);
     }
+
+    public function isTodayAHoliday()
+    {
+        $count = Holiday::query()->current()->count();
+        return $count !== 0;
+    }
+
     public function pythonGivenSubjects()
     {
+        if ($this->isTodayAHoliday()) {
+            return response(array());
+        }
         $semester = Semester::getLatest();
         if (!$semester) return response(["message" => "no semester"]);
         $gs = GivenSubject::query()

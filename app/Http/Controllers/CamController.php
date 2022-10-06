@@ -80,11 +80,11 @@ class CamController extends Controller
                 'timestamp' => Carbon::now()->toDateTimeString(),
                 'unidentified' => 0,
                 'ignore' => 0,
-                'verification_img' => $person->track === 1 ? $imageLink : "",
-                'warning_flag' => $person->on_blacklist,
+                'verification_img' => $person->track === 1 || $person->on_blacklist === 1 ? $imageLink : "",
+                'warning_flag' => $person->on_blacklist === 1,
             ]);
             $tracked = $tracked || ($person->track === 1);
-            $blacklisted = $blacklisted || ($person->on_blacklist);
+            $blacklisted = $blacklisted || ($person->on_blacklist === 1);
         }
         for ($i = 0; $i < (int)$request->get('unknown'); $i++) {
             array_push($logRecords, [
@@ -97,10 +97,12 @@ class CamController extends Controller
                 'warning_flag' => 0,
             ]);
         }
-        if ($blacklisted || (int)$request->get('unknows') !== 0) {
-            broadcast(new LogEvent("text-red-500"))->toOthers();
+        if ($blacklisted) {
+            broadcast(new LogEvent("red"));
+        } elseif ((int)$request->get('unknown') !== 0) {
+            broadcast(new LogEvent("blue"));
         } elseif ($tracked) {
-            broadcast(new LogEvent("text-yellow-500"))->toOthers();
+            broadcast(new LogEvent("yellow"));
         }
         Log::insert($logRecords);
     }
@@ -200,7 +202,7 @@ class CamController extends Controller
             ]);
         }
         DB::commit();
-        return response(['status' => 'ok', 'message' => 'تم إضافة توقبت عمل']);
+        return response(['status' => 'ok', 'message' => 'تم إضافة توقيت عمل']);
     }
 
 
@@ -230,7 +232,7 @@ class CamController extends Controller
             'start' => $request->get('start'),
             'end' => $request->get('end'),
         ]);
-        return response(['status' => 'ok', 'message' => 'تم إضافة توقبت عمل']);
+        return response(['status' => 'ok', 'message' => 'تم إضافة توقيت عمل']);
     }
 
     /**

@@ -17,7 +17,8 @@ class TakenSubjectController extends Controller
         //
     }
 
-    public function info(Request $request,TakenSubject $takenSubject){
+    public function info(Request $request, TakenSubject $takenSubject)
+    {
 
         return response([
             'subject' => $takenSubject->subject,
@@ -25,6 +26,30 @@ class TakenSubjectController extends Controller
             'theory' => $takenSubject->thSubjectGiven()->with('professor')->first(),
             'practical' => $takenSubject->prSubjectGiven()->with('professor')->first(),
         ]);
+    }
+
+    public function warnings(Request $request)
+    {
+        // return response($request);
+        $query = TakenSubject::query()->where('semester_id', auth()->user()->semester_id)->with(['student', 'subject']);
+        if ($request->get('identifier') !== "null") {
+            $query = $query->whereHas('student', function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->get('identifier') . '%')
+                    ->orWhere('id_number', 'like', '%' . $request->get('identifier')  . '%');
+            });
+        }
+        switch ($request->get('scope')) {
+            case 'warnings':
+                $query = $query->where('attendance_warning', 1)->where('suspended', 0);
+                break;
+            case 'suspensions':
+                $query = $query->where('suspended', 1);
+                break;
+            default:
+                $query = $query->where('attendance_warning', 1)->orWhere('suspended', 1);
+                break;
+        }
+        return response($query->orderBy('subject_id')->get());
     }
 
     /**

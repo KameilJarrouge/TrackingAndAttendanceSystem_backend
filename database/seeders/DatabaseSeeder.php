@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Cam;
 use App\Models\Person as ModelsPerson;
 use App\Models\Semester;
 use App\Models\Setting;
@@ -48,8 +49,8 @@ class DatabaseSeeder extends Seeder
         $semester = Semester::create([
             'name_identifier' => 'صيفي',
             'year' => '2022-2023',
-            'semester_start' => '2022-08-06',
-            'number_of_weeks' => 8,
+            'semester_start' => '2022-09-30',
+            'number_of_weeks' => 16,
         ]);
 
         // students
@@ -73,6 +74,39 @@ class DatabaseSeeder extends Seeder
         $advancedProgramming2 = Subject::create([
             'name' => 'برمجة متقدمة 2',
             'department' => 'الهندسة المعلوماتية'
+        ]);
+
+        // cameras
+        Cam::create([
+            'cam_url' => 0,
+            'location' => '4518',
+            'type' => 0
+        ]);
+
+        $entrance = Cam::create([
+            'cam_url' => 1,
+            'location' => 'مدخل رئيسي',
+            'type' => 0
+        ]);
+        $entrance->schedule()->create([
+            'day' => 5,
+            'start' => '08:00:00',
+            'end' => '16:00:00',
+        ]);
+        $exit = Cam::create([
+            'cam_url' => 2,
+            'location' => 'مخرج رئيسي',
+            'type' => 0
+        ]);
+        $exit->schedule()->create([
+            'day' => 5,
+            'start' => '08:00:00',
+            'end' => '16:00:00',
+        ]);
+        Cam::create([
+            'cam_url' => 3,
+            'location' => 'مكتبة',
+            'type' => 0
         ]);
     }
 

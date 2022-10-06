@@ -70,7 +70,7 @@ class ScheduleController extends Controller
             'start' => $request->get('start'),
             'end' => $request->get('end'),
         ]);
-        return response(['status' => 'ok', 'message' => 'تم تعديل توقبت العمل']);
+        return response(['status' => 'ok', 'message' => 'تم تعديل توقيت العمل']);
     }
 
     /**
@@ -83,6 +83,5 @@ class ScheduleController extends Controller
     {
         $schedule->delete();
         return response(['status' => 'ok', 'message' => 'تم إزالة توقيت العمل']);
-
     }
 }
