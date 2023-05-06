@@ -3,11 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Cam;
+use App\Models\GivenSubject;
 use App\Models\Person as ModelsPerson;
+use App\Models\ProfAttendance;
 use App\Models\Semester;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Models\TakenSubject;
 use App\Models\User;
 use Faker\Provider\Person;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -55,7 +58,7 @@ class DatabaseSeeder extends Seeder
 
         // students
         $andrew = $this->storePerson('1753001', ' اندرو عيسى', 'andrew.png', config('global.identity_student'));
-        $checkbeans = $this->storePerson('1753002', 'احمد باجوق', 'checkbeans.png', config('global.identity_student'));
+        // $checkbeans = $this->storePerson('1753002', 'احمد باجوق', 'checkbeans.png', config('global.identity_student'));
         $elie = $this->storePerson('1753003', 'إيلي عاد', 'elie.png', config('global.identity_student'));
         $naeem = $this->storePerson('1753004', 'نعيم نعمة', 'naeem.png', config('global.identity_student'));
 
@@ -71,13 +74,15 @@ class DatabaseSeeder extends Seeder
             'department' => 'الهندسة المعلوماتية'
         ]);
 
-        $advancedProgramming2 = Subject::create([
-            'name' => 'برمجة متقدمة 2',
-            'department' => 'الهندسة المعلوماتية'
-        ]);
+
+
+        // $advancedProgramming2 = Subject::create([
+        //     'name' => 'برمجة متقدمة 2',
+        //     'department' => 'الهندسة المعلوماتية'
+        // ]);
 
         // cameras
-        Cam::create([
+        $classroom = Cam::create([
             'cam_url' => 0,
             'location' => '4518',
             'type' => 0
@@ -86,28 +91,68 @@ class DatabaseSeeder extends Seeder
         $entrance = Cam::create([
             'cam_url' => 1,
             'location' => 'مدخل رئيسي',
-            'type' => 0
+            'type' => 1
         ]);
-        $entrance->schedule()->create([
-            'day' => 5,
-            'start' => '08:00:00',
-            'end' => '16:00:00',
-        ]);
+        // $entrance->schedule()->create([
+        //     'day' => 5,
+        //     'start' => '08:00:00',
+        //     'end' => '16:00:00',
+        // ]);
         $exit = Cam::create([
             'cam_url' => 2,
             'location' => 'مخرج رئيسي',
-            'type' => 0
+            'type' => 2
         ]);
-        $exit->schedule()->create([
-            'day' => 5,
-            'start' => '08:00:00',
-            'end' => '16:00:00',
-        ]);
-        Cam::create([
-            'cam_url' => 3,
-            'location' => 'مكتبة',
-            'type' => 0
-        ]);
+        // $exit->schedule()->create([
+        //     'day' => 5,
+        //     'start' => '08:00:00',
+        //     'end' => '16:00:00',
+        // ]);
+        // Cam::create([
+        //     'cam_url' => 3,
+        //     'location' => 'مكتبة',
+        //     'type' => 3
+        // ]);
+
+        $attr = array(
+            'time' => '08:00:00',
+            'day' => 1,
+            'is_theory' => 1,
+            'attendance_pre' => 15,
+            'attendance_post' => 15,
+            'attendance_present' => 15,
+            'semester_id' => $semester->id,
+        );
+        $attr['cam_id'] = $classroom->id;
+        $attr['subject_id'] = $advancedProgramming1->id;
+        $attr['person_id'] = $bashour->id;
+        $gs = new GivenSubject($attr);
+        $gs->save();
+
+        $att = array();
+        for ($i = 1; $i <= $semester->number_of_weeks; $i++) {
+            array_push($att, ['given_subject_id' => $gs->id, 'week' => $i]);
+        }
+        ProfAttendance::query()->insert($att);
+
+        $latestSemester = Semester::getLatest();
+        $attributes = array(
+            'subject_id' => $advancedProgramming1->id,
+            'person_id' => $andrew->id,
+            'semester_id' => $latestSemester->id,
+            'given_subject_id_th' => $gs->id,
+            'attendance_warning' => 1
+        );
+        TakenSubject::query()->create($attributes);
+        $attributes = array(
+            'subject_id' => $advancedProgramming1->id,
+            'person_id' => $naeem->id,
+            'semester_id' => $latestSemester->id,
+            'given_subject_id_th' => $gs->id,
+            'attendance_warning' => 0,
+            'suspended' => 1,
+        );
+        TakenSubject::query()->create($attributes);
     }
 
 

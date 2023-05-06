@@ -59,7 +59,7 @@ class PersonController extends Controller
             ->where('recognize', 1)
             ->with('images:id,person_id,url')
             ->whereHas('images')
-            ->get(['id', 'identity']));
+            ->get(['id', 'identity', 'name']));
     }
 
     public function test(Request $request)
